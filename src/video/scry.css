@@ -1,0 +1,720 @@
+/*
+ * Scry: the look of the skin. Loaded after skin.css, which keeps the structural rules the components need
+ * (popup placement, icon state swaps, menu paging). Colors, radii, surfaces and motion come from the tokens in
+ * styles/themes/scaffold.css; this file holds the shapes.
+ */
+@layer components {
+  @scope (.media-skin[data-theme="scaffold"][data-preset="video"]) {
+    :scope {
+      --scry-ink-soft: rgb(255 255 255 / 0.72);
+      --scry-serif: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      /* Ink sits on moving pictures: a tight dark edge plus a soft halo keeps it readable over white frames. */
+      --scry-ink-shadow: 0 0 1px rgb(0 0 0 / 0.6), 0 1px 3px rgb(0 0 0 / 0.5);
+      --scry-ink-drop: drop-shadow(0 0 0.5px rgb(0 0 0 / 0.7)) drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
+      --scry-focus-ring: 0 0 0 2px rgb(0 0 0 / 0.65);
+      --scry-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --scry-orb-size: clamp(6.5rem, 30cqi, 14rem);
+      --scry-line: 2px;
+      --scry-line-active: 4px;
+      --scry-bead: calc(var(--media-spacing) * 3.5);
+    }
+
+    .media-container,
+    :scope.media-container {
+      font-family: var(
+        --media-font-family,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        Roboto,
+        "Helvetica Neue",
+        sans-serif
+      );
+      font-size: calc(var(--media-spacing) * 3.25);
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- The vision layer: one canvas over the picture, under the controls. ---------- */
+
+    .scry-vision {
+      pointer-events: none;
+      z-index: 10;
+      display: block;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: inherit;
+    }
+
+    .scry-vision > canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ---------- Scrim ---------- */
+
+    .video-controls-backdrop {
+      background-image:
+        linear-gradient(
+          to top,
+          rgb(0 0 0 / 0.66),
+          rgb(0 0 0 / 0.46) 12%,
+          rgb(0 0 0 / 0.2) 28%,
+          rgb(0 0 0 / 0.05) 42%,
+          transparent 52%
+        ),
+        linear-gradient(to bottom, rgb(0 0 0 / 0.42), rgb(0 0 0 / 0.12) 14%, transparent 26%);
+    }
+
+    /* ---------- Buttons ---------- */
+
+    .media-button {
+      width: calc(var(--media-spacing) * 9);
+      height: calc(var(--media-spacing) * 9);
+      border-radius: var(--media-control-radius);
+      transition:
+        background-color var(--media-duration-fast) ease-out,
+        scale var(--media-duration-fast) ease-out;
+    }
+
+    .media-button:active {
+      scale: 0.92;
+    }
+
+    .media-button:focus-visible {
+      box-shadow: var(--scry-focus-ring);
+    }
+
+    .media-button-icon,
+    .media-button-icon-base {
+      width: calc(var(--media-spacing) * 5);
+      height: calc(var(--media-spacing) * 5);
+      filter: var(--scry-ink-drop);
+    }
+
+    @media (pointer: coarse) {
+      .media-button {
+        width: calc(var(--media-spacing) * 11);
+        height: calc(var(--media-spacing) * 11);
+      }
+    }
+
+    /* Captions on is a filled icon plus a dot, never colour alone. */
+    .media-captions-button[data-active]::after {
+      content: "";
+      width: 4px;
+      height: 4px;
+      background-color: currentColor;
+      border-radius: 50%;
+      position: absolute;
+      bottom: calc(var(--media-spacing) * 0.75);
+    }
+
+    /* ---------- Top row ---------- */
+
+    .video-controls-top {
+      padding: calc(var(--media-spacing) * 3) calc(var(--media-spacing) * 3.5);
+      transition: opacity var(--media-duration-controls) ease-out;
+    }
+
+    .media-title {
+      font-size: calc(var(--media-spacing) * 3.5);
+      font-weight: 500;
+      text-shadow: var(--scry-ink-shadow);
+      padding-inline: calc(var(--media-spacing) * 1.5);
+      line-height: calc(var(--media-spacing) * 9);
+    }
+
+    /* ---------- Bottom row ---------- */
+
+    .video-controls-bottom {
+      gap: 0;
+      padding: 0 calc(var(--media-spacing) * 3.5) calc(var(--media-spacing) * 2.5);
+      transition: opacity var(--media-duration-controls) ease-out;
+    }
+
+    .video-controls-slider-row {
+      padding-inline: calc(var(--media-spacing) * 1.5);
+    }
+
+    .video-controls-group {
+      gap: calc(var(--media-spacing) * 1);
+    }
+
+    .media-time-group {
+      gap: calc(var(--media-spacing) * 1.25);
+      padding-inline: calc(var(--media-spacing) * 2);
+      text-shadow: var(--scry-ink-shadow);
+      letter-spacing: 0.02em;
+    }
+
+    .media-time-duration-value,
+    .media-time-separator {
+      opacity: 1;
+      color: var(--scry-ink-soft);
+    }
+
+    .media-time-toggle {
+      border-radius: calc(var(--media-spacing) * 1);
+    }
+
+    .media-time-toggle:focus-visible {
+      box-shadow: var(--scry-focus-ring);
+    }
+
+    /* ---------- The horizon: a hairline timeline with a glass bead ---------- */
+
+    .media-time-slider {
+      height: calc(var(--media-spacing) * 7);
+      min-width: calc(var(--media-spacing) * 12);
+      cursor: pointer;
+      flex: 1;
+      align-items: center;
+      display: flex;
+      position: relative;
+    }
+
+    @media (pointer: coarse) {
+      .media-time-slider {
+        height: calc(var(--media-spacing) * 10);
+      }
+    }
+
+    .media-time-slider[data-disabled] {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
+    .media-time-slider-chapters {
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      position: relative;
+    }
+
+    /* Chapters are notches: each one clips its own length of the line, inset a little from its neighbours. */
+    .media-time-slider-chapter {
+      --media-chapter-inset-end: 0.5;
+      --media-chapter-inset-start: 0.5;
+      clip-path: inset(0 calc(100% - var(--media-slider-chapter-end)) 0 var(--media-slider-chapter-start));
+      align-items: center;
+      display: flex;
+      position: absolute;
+      inset: 0;
+    }
+
+    .media-time-slider-chapter:first-of-type {
+      --media-chapter-inset-start: 0;
+    }
+
+    .media-time-slider-chapter:last-of-type {
+      --media-chapter-inset-end: 0;
+    }
+
+    .media-time-slider-track {
+      isolation: isolate;
+      height: var(--scry-line);
+      position: absolute;
+      inset-inline: 0;
+      transition: height var(--media-duration-slider) ease-out;
+    }
+
+    .media-time-slider[data-interactive] .media-time-slider-track {
+      height: var(--scry-line-active);
+    }
+
+    .media-time-slider-track::before {
+      content: "";
+      inset-block: 0;
+      left: calc(var(--media-slider-chapter-start) + var(--media-spacing) * var(--media-chapter-inset-start));
+      right: calc(100% - var(--media-slider-chapter-end) + var(--media-spacing) * var(--media-chapter-inset-end));
+      background-color: rgb(255 255 255 / 0.3);
+      box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.28);
+      border-radius: 99px;
+      position: absolute;
+    }
+
+    .media-time-slider-buffer,
+    .media-time-slider-fill {
+      inset-block: 0;
+      left: calc(var(--media-slider-chapter-start, 0%) + var(--media-spacing) * var(--media-chapter-inset-start, 0));
+      border-radius: 99px;
+      position: absolute;
+    }
+
+    .media-time-slider-buffer {
+      right: max(
+        calc(100% - var(--media-slider-buffer, 0%)),
+        calc(100% - var(--media-slider-chapter-end, 100%) + var(--media-spacing) * var(--media-chapter-inset-end, 0))
+      );
+      background-color: rgb(255 255 255 / 0.32);
+    }
+
+    .media-time-slider-fill {
+      right: max(
+        calc(100% - var(--media-slider-fill, 0%)),
+        calc(100% - var(--media-slider-chapter-end, 100%) + var(--media-spacing) * var(--media-chapter-inset-end, 0))
+      );
+      background-color: var(--media-accent);
+      box-shadow: 0 0 8px rgb(255 255 255 / 0.4);
+    }
+
+    .media-time-slider[data-dragging] .media-time-slider-fill {
+      right: max(
+        calc(100% - var(--media-slider-pointer, 0%)),
+        calc(100% - var(--media-slider-chapter-end, 100%) + var(--media-spacing) * var(--media-chapter-inset-end, 0))
+      );
+    }
+
+    .media-time-slider-thumb {
+      left: var(--media-slider-fill, 0%);
+      width: var(--scry-bead);
+      height: var(--scry-bead);
+      background:
+        radial-gradient(circle at 34% 28%, #fff 0 16%, rgb(255 255 255 / 0) 46%),
+        radial-gradient(circle at 50% 50%, rgb(236 242 255) 0 52%, rgb(190 205 235) 78%, #fff 100%);
+      box-shadow: var(--media-shadow-thumb);
+      border-radius: 50%;
+      outline-style: none;
+      position: absolute;
+      translate: -50% 0;
+      scale: 0.8;
+      transition: scale var(--media-duration-slider) var(--scry-ease-out);
+    }
+
+    .media-time-slider[data-interactive] .media-time-slider-thumb {
+      scale: 1.15;
+    }
+
+    .media-time-slider[data-dragging] .media-time-slider-thumb {
+      left: var(--media-slider-pointer);
+      scale: 1.3;
+    }
+
+    .media-time-slider-thumb:focus-visible {
+      outline: 2px solid var(--media-ring);
+      outline-offset: 3px;
+      box-shadow:
+        var(--media-shadow-thumb),
+        0 0 0 3px rgb(0 0 0 / 0.65);
+    }
+
+    @media (forced-colors: active) {
+      .media-time-slider[data-disabled] {
+        color: graytext;
+        opacity: 1;
+      }
+
+      .media-time-slider-track {
+        height: calc(var(--media-spacing) * 1.5);
+      }
+
+      .media-time-slider-track::before {
+        forced-color-adjust: none;
+        background-color: canvas;
+        border: 1px solid canvastext;
+        box-shadow: none;
+      }
+
+      .media-time-slider-buffer {
+        forced-color-adjust: none;
+        background-image: repeating-linear-gradient(135deg, canvastext 0 1px, canvas 1px 3px);
+      }
+
+      .media-time-slider-fill {
+        forced-color-adjust: none;
+        background-color: highlight;
+        box-shadow: none;
+      }
+
+      .media-time-slider-thumb {
+        forced-color-adjust: none;
+        background: highlight;
+        border: 1px solid canvastext;
+        box-shadow: none;
+      }
+    }
+
+    /* ---------- The orb: a look ahead, rising from the bead ---------- */
+
+    .media-time-slider-preview {
+      pointer-events: none;
+      bottom: calc(100% - var(--media-spacing) * 0.5);
+      transform-origin: 50% 100%;
+      justify-items: center;
+      gap: calc(var(--media-spacing) * 2);
+      opacity: 0;
+      scale: var(--media-hidden-preview-scale);
+      display: grid;
+      transition:
+        opacity var(--media-duration) ease-out,
+        scale var(--media-duration-slower) var(--scry-ease-out);
+    }
+
+    .media-time-slider[data-disabled] .media-time-slider-preview {
+      display: none;
+    }
+
+    .media-time-slider:is([data-dragging], [data-pointing]) .media-time-slider-preview {
+      opacity: 1;
+      scale: 1;
+    }
+
+    .scry-orb {
+      width: var(--scry-orb-size);
+      aspect-ratio: 1;
+      background-color: #0b0d12;
+      border-radius: 50%;
+      box-shadow:
+        0 18px 40px -12px rgb(0 0 0 / 0.7),
+        0 4px 10px rgb(0 0 0 / 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Glass over the still thumbnail, for when the WebGL orb is not drawing. */
+    .scry-orb::after {
+      content: "";
+      background:
+        radial-gradient(58% 40% at 33% 19%, rgb(255 255 255 / 0.42), transparent 72%),
+        radial-gradient(40% 26% at 68% 86%, rgb(255 255 255 / 0.16), transparent 75%),
+        radial-gradient(closest-side, transparent 62%, rgb(0 0 0 / 0.3) 90%, rgb(255 255 255 / 0.32) 100%);
+      box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.42);
+      border-radius: 50%;
+      position: absolute;
+      inset: 0;
+    }
+
+    .scry-orb .media-slider-thumbnail {
+      max-width: none;
+      height: 100%;
+      aspect-ratio: 16 / 9;
+      background-color: transparent;
+      display: block;
+      position: absolute;
+      left: 50%;
+      translate: -50% 0;
+      overflow: hidden;
+    }
+
+    .media-slider-thumbnail-image {
+      display: block;
+    }
+
+    /* While the WebGL orb draws, the anchor only gives it a place and a size. */
+    :scope[data-scry-gl] .scry-orb {
+      background-color: transparent;
+      box-shadow: none;
+    }
+
+    :scope[data-scry-gl] .scry-orb::after,
+    :scope[data-scry-gl] .scry-orb .media-slider-thumbnail {
+      visibility: hidden;
+    }
+
+    .scry-caption {
+      justify-items: center;
+      gap: calc(var(--media-spacing) * 0.5);
+      max-width: max(var(--scry-orb-size), calc(var(--media-spacing) * 40));
+      text-align: center;
+      text-shadow: var(--scry-ink-shadow);
+      display: grid;
+    }
+
+    .media-time-slider-chapter-title {
+      font-family: var(--scry-serif);
+      font-size: calc(var(--media-spacing) * 4);
+      font-style: italic;
+      line-height: 1.2;
+      letter-spacing: 0;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .media-time-slider-chapter-title:empty {
+      display: none;
+    }
+
+    .scry-caption-time {
+      align-items: baseline;
+      gap: calc(var(--media-spacing) * 2);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.03em;
+      display: flex;
+    }
+
+    .media-time-slider-value {
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .scry-delta {
+      color: var(--scry-ink-soft);
+    }
+
+    .scry-delta:empty {
+      display: none;
+    }
+
+    /* ---------- Centre: the play control is a still orb ---------- */
+
+    .video-controls-center {
+      display: flex;
+      transition:
+        opacity var(--media-duration-controls) ease-out,
+        scale var(--media-duration-slow) var(--scry-ease-out);
+    }
+
+    .video-controls-center-play {
+      width: clamp(3.75rem, 13cqi, 5.5rem) !important;
+      height: clamp(3.75rem, 13cqi, 5.5rem) !important;
+      border-radius: 50%;
+      transition:
+        opacity var(--media-duration) ease-out,
+        scale var(--media-duration-slow) var(--scry-ease-out);
+    }
+
+    .video-controls-center-play-icon {
+      width: 34% !important;
+      height: 34% !important;
+    }
+
+    /* The orb belongs to rest: with a mouse it steps aside while the picture plays, and returns on focus. */
+    @media (pointer: fine) {
+      .video-controls-center-play[data-started]:not([data-paused], [data-ended], :focus-visible) {
+        pointer-events: none;
+        opacity: 0;
+        scale: var(--media-hidden-playback-scale);
+      }
+    }
+
+    /* One orb at a time: looking ahead hides the play orb. */
+    :scope:has(.media-time-slider:is([data-dragging], [data-pointing])) .video-controls-center {
+      pointer-events: none;
+      opacity: 0;
+      scale: var(--media-hidden-playback-scale);
+    }
+
+    @media (forced-colors: none) {
+      .video-controls-center-play,
+      .video-controls-center-play:hover,
+      .video-controls-center-play:focus-visible {
+        background:
+          radial-gradient(56% 38% at 33% 20%, rgb(255 255 255 / 0.5), transparent 72%),
+          radial-gradient(42% 26% at 68% 86%, rgb(255 255 255 / 0.2), transparent 75%),
+          radial-gradient(closest-side, rgb(20 24 32 / 0.18) 55%, rgb(0 0 0 / 0.3) 88%, rgb(255 255 255 / 0.4) 100%) !important;
+        -webkit-backdrop-filter: blur(6px) saturate(160%) brightness(1.06);
+        backdrop-filter: blur(6px) saturate(160%) brightness(1.06);
+        box-shadow:
+          inset 0 0 0 1px rgb(255 255 255 / 0.45),
+          0 16px 36px -12px rgb(0 0 0 / 0.65),
+          0 3px 8px rgb(0 0 0 / 0.3);
+      }
+
+      @media (hover: hover) {
+        .video-controls-center-play:hover {
+          scale: 1.05;
+        }
+      }
+
+      .video-controls-center-play:focus-visible {
+        box-shadow:
+          inset 0 0 0 1px rgb(255 255 255 / 0.45),
+          0 0 0 4px rgb(0 0 0 / 0.65),
+          0 16px 36px -12px rgb(0 0 0 / 0.65);
+        outline-offset: 2px;
+      }
+    }
+
+    @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+      .video-controls-center-play,
+      .video-controls-center-play:hover,
+      .video-controls-center-play:focus-visible {
+        background: rgb(0 0 0) !important;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        box-shadow: inset 0 0 0 1.5px white;
+      }
+    }
+
+    .media-buffering-indicator-spinner-icon {
+      width: calc(var(--media-spacing) * 10);
+      height: calc(var(--media-spacing) * 10);
+      filter: var(--scry-ink-drop);
+    }
+
+    /* ---------- Smoke glass: menus, popovers, tooltips, indicators, dialog ---------- */
+
+    .media-menu-popup,
+    .media-volume-popover-popup,
+    .media-tooltip-popup,
+    .media-indicator,
+    .media-dialog-popup {
+      background-color: var(--media-popover);
+      -webkit-backdrop-filter: var(--media-backdrop-filter-surface);
+      backdrop-filter: var(--media-backdrop-filter-surface);
+      box-shadow: var(--media-shadow-surface), var(--media-shadow-surface-inset);
+    }
+
+    .media-popup {
+      transition:
+        opacity var(--media-duration-menu) ease-out,
+        scale var(--media-duration-menu) var(--scry-ease-out),
+        filter var(--media-duration-menu) ease-out,
+        transform var(--media-duration-menu) var(--scry-ease-out),
+        display var(--media-duration-menu) allow-discrete,
+        overlay var(--media-duration-menu) allow-discrete;
+    }
+
+    .media-menu-popup {
+      min-width: calc(var(--media-spacing) * 50);
+      border-radius: var(--media-popup-radius);
+      --media-popover-side-offset: calc(var(--media-spacing) * 10);
+    }
+
+    .media-menu-content {
+      padding: calc(var(--media-spacing) * 1.5);
+      gap: 2px !important;
+    }
+
+    .media-menu-radio-group {
+      gap: 2px;
+    }
+
+    .media-menu-item,
+    .media-menu-back-item,
+    .media-menu-radio-item {
+      min-height: calc(var(--media-spacing) * 9);
+      padding-inline: calc(var(--media-spacing) * 2.5);
+      border-radius: var(--media-menu-item-radius);
+      gap: calc(var(--media-spacing) * 2.5);
+    }
+
+    .media-menu-item:focus-visible,
+    .media-menu-back-item:focus-visible,
+    .media-menu-radio-item:focus-visible {
+      outline: 2px solid var(--media-ring);
+      outline-offset: -2px;
+    }
+
+    .media-menu-back-item {
+      font-weight: 500;
+    }
+
+    .media-menu-separator {
+      height: 1px;
+      background-color: rgb(255 255 255 / 0.1);
+      margin: calc(var(--media-spacing) * 0.5) calc(var(--media-spacing) * 1.5);
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .media-menu-trigger-icon,
+    .media-menu-radio-icon,
+    .media-menu-forward-chevron,
+    .media-menu-back-chevron {
+      width: calc(var(--media-spacing) * 4.5);
+      height: calc(var(--media-spacing) * 4.5);
+      opacity: 0.8;
+    }
+
+    .media-menu-badge {
+      border-radius: calc(var(--media-spacing) * 1);
+    }
+
+    .media-tooltip-popup {
+      padding: calc(var(--media-spacing) * 1) calc(var(--media-spacing) * 2);
+      font-size: calc(var(--media-spacing) * 3);
+      border-radius: calc(var(--media-spacing) * 2);
+      --media-tooltip-side-offset: calc(var(--media-spacing) * 10);
+    }
+
+    .media-tooltip-popup[data-open] {
+      gap: calc(var(--media-spacing) * 1.5);
+    }
+
+    .media-tooltip-shortcut {
+      background-color: rgb(255 255 255 / 0.14);
+      border-radius: calc(var(--media-spacing) * 1);
+      padding: 0.1em 0.35em;
+    }
+
+    .media-volume-popover-popup {
+      width: calc(var(--media-spacing) * 9);
+      height: calc(var(--media-spacing) * 28);
+      padding-inline: 0;
+      padding-block: calc(var(--media-spacing) * 4);
+      border-radius: 999px;
+      --media-popover-side-offset: calc(var(--media-spacing) * 10);
+    }
+
+    .media-volume-slider-track {
+      width: var(--scry-line);
+      background-color: rgb(255 255 255 / 0.3);
+      border-radius: 99px;
+      overflow: visible;
+    }
+
+    .media-volume-slider-fill {
+      border-radius: 99px;
+    }
+
+    .media-volume-slider-thumb {
+      width: var(--scry-bead);
+      height: var(--scry-bead);
+      background:
+        radial-gradient(circle at 34% 28%, #fff 0 16%, rgb(255 255 255 / 0) 46%),
+        radial-gradient(circle at 50% 50%, rgb(236 242 255) 0 52%, rgb(190 205 235) 78%, #fff 100%);
+      box-shadow: var(--media-shadow-thumb);
+      border-radius: 50%;
+      outline-style: none;
+    }
+
+    .media-volume-slider-thumb:focus-visible {
+      outline: 2px solid var(--media-ring);
+      outline-offset: 3px;
+    }
+
+    .media-indicator {
+      padding-inline: calc(var(--media-spacing) * 3.5);
+      padding-block: calc(var(--media-spacing) * 2);
+      border-radius: 999px;
+    }
+
+    .media-seek-indicator {
+      border-radius: calc(var(--media-spacing) * 4);
+    }
+
+    .media-dialog-backdrop {
+      background-color: rgb(0 0 0 / 0.55);
+    }
+
+    .media-dialog-popup {
+      border-radius: var(--media-dialog-radius);
+    }
+
+    .media-dialog-title {
+      font-weight: 500;
+    }
+
+    .media-dialog-close {
+      border-radius: 999px;
+      border-color: rgb(255 255 255 / 0.4);
+    }
+
+    @media (forced-colors: active) {
+      .media-volume-slider-thumb {
+        background: highlight;
+        box-shadow: none;
+      }
+    }
+  }
+}

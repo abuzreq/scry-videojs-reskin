@@ -1,5 +1,6 @@
 import '../styles/video/scaffold.css';
 import './skin.css';
+import './scry.css';
 import '@videojs/html/i18n';
 import '@videojs/html/ui/container';
 import '@videojs/html/ui/poster';
@@ -23,7 +24,6 @@ import '@videojs/html/ui/tooltip-shortcut';
 import '@videojs/html/ui/cast-button';
 import '@videojs/html/ui/pip-button';
 import '@videojs/html/ui/fullscreen-button';
-import '@videojs/html/ui/seek-button';
 import '@videojs/html/ui/play-button';
 import '@videojs/html/ui/time-slider';
 import '@videojs/html/ui/time-slider-chapters';
@@ -62,57 +62,8 @@ import '@videojs/html/ui/status-indicator';
 import '@videojs/html/ui/status-indicator-value';
 import '@videojs/html/ui/seek-indicator';
 import '@videojs/html/ui/seek-indicator-value';
+import './scry-vision';
 import { registerIcons } from '@videojs/html/icons';
-import {
-  airPlayEnterIcon as airPlayEnterIconScaffold,
-  airPlayExitIcon as airPlayExitIconScaffold,
-  captionsOffIcon as captionsOffIconScaffold,
-  captionsOnIcon as captionsOnIconScaffold,
-  castEnterIcon as castEnterIconScaffold,
-  castExitIcon as castExitIconScaffold,
-  checkIcon as checkIconScaffold,
-  chevronIcon as chevronIconScaffold,
-  fullscreenEnterIcon as fullscreenEnterIconScaffold,
-  fullscreenExitIcon as fullscreenExitIconScaffold,
-  gearIcon as gearIconScaffold,
-  pauseIcon as pauseIconScaffold,
-  pipEnterIcon as pipEnterIconScaffold,
-  pipExitIcon as pipExitIconScaffold,
-  playIcon as playIconScaffold,
-  restartIcon as restartIconScaffold,
-  seekIcon as seekIconScaffold,
-  speechIcon as speechIconScaffold,
-  speedIcon as speedIconScaffold,
-  spinnerIcon as spinnerIconScaffold,
-  switchesIcon as switchesIconScaffold,
-  volumeHighIcon as volumeHighIconScaffold,
-  volumeLowIcon as volumeLowIconScaffold,
-  volumeOffIcon as volumeOffIconScaffold,
-} from '@videojs/html/icons/scaffold';
+import { scryIcons } from './icons';
 
-registerIcons('scaffold', {
-  'airplay-enter': airPlayEnterIconScaffold,
-  'airplay-exit': airPlayExitIconScaffold,
-  'captions-off': captionsOffIconScaffold,
-  'captions-on': captionsOnIconScaffold,
-  'cast-enter': castEnterIconScaffold,
-  'cast-exit': castExitIconScaffold,
-  check: checkIconScaffold,
-  chevron: chevronIconScaffold,
-  'fullscreen-enter': fullscreenEnterIconScaffold,
-  'fullscreen-exit': fullscreenExitIconScaffold,
-  gear: gearIconScaffold,
-  pause: pauseIconScaffold,
-  'pip-enter': pipEnterIconScaffold,
-  'pip-exit': pipExitIconScaffold,
-  play: playIconScaffold,
-  restart: restartIconScaffold,
-  seek: seekIconScaffold,
-  speech: speechIconScaffold,
-  speed: speedIconScaffold,
-  spinner: spinnerIconScaffold,
-  switches: switchesIconScaffold,
-  'volume-high': volumeHighIconScaffold,
-  'volume-low': volumeLowIconScaffold,
-  'volume-off': volumeOffIconScaffold,
-});
+registerIcons('scry', scryIcons);

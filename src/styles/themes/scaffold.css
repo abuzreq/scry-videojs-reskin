@@ -8,26 +8,28 @@
     --media-accent-foreground: var(--media-accent-text-color, black);
     --media-primary: var(--media-accent);
     --media-primary-foreground: var(--media-accent-text-color, black);
-    --media-muted: #404040;
-    --media-popover: black;
+    --media-muted: rgb(255 255 255 / 0.16);
+    /* Smoke glass: dark enough that white ink clears 4.5:1 over a white frame even before the blur. */
+    --media-popover: rgb(14 16 20 / 0.74);
     --media-popover-boundary-offset: calc(var(--media-spacing) * 3);
     --media-tooltip-boundary-offset: var(--media-popover-boundary-offset);
     --media-popover-foreground: white;
-    --media-ring: var(--media-accent);
-    --media-button-highlight: rgb(255 255 255 / 0.2);
-    --media-video-border-radius: var(--media-border-radius, 0px);
-    --media-control-radius: 0px;
-    --media-controls-radius: 0px;
-    --media-menu-item-radius: 0px;
-    --media-popup-radius: 0px;
-    --media-dialog-radius: 0px;
+    --media-ring: white;
+    --media-button-highlight: rgb(255 255 255 / 0.14);
+    --media-video-border-radius: var(--media-border-radius, 16px);
+    --media-control-radius: 999px;
+    --media-controls-radius: 999px;
+    --media-menu-item-radius: calc(var(--media-spacing) * 2.25);
+    --media-popup-radius: calc(var(--media-spacing) * 3.5);
+    --media-dialog-radius: calc(var(--media-spacing) * 5);
     --media-scrollbar-thumb-color: #808080;
-    --media-shadow-surface: none;
-    --media-shadow-surface-inset: none;
-    --media-shadow-thumb: none;
-    --media-backdrop-filter-surface: none;
-    --media-backdrop-filter-indicator: none;
-    --media-backdrop-filter-dialog: none;
+    --media-shadow-surface: 0 16px 36px -12px rgb(0 0 0 / 0.6), 0 2px 8px rgb(0 0 0 / 0.3);
+    --media-shadow-surface-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.14), inset 0 0 0 1px rgb(255 255 255 / 0.09);
+    --media-shadow-thumb: 0 0 0 0.5px rgb(0 0 0 / 0.35), 0 2px 8px rgb(0 0 0 / 0.5), 0 0 12px rgb(255 255 255 / 0.35);
+    --media-backdrop-filter-surface: blur(20px) saturate(140%);
+    --media-backdrop-filter-indicator: blur(12px) saturate(140%);
+    --media-backdrop-filter-dialog: blur(24px) saturate(140%);
+    --media-hidden-preview-scale: 0.35;
   }
 
   .media-skin[data-theme="scaffold"][data-preset$="audio"] {
