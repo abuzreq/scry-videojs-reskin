@@ -432,6 +432,22 @@
       scale: 1;
     }
 
+    /* After a keyboard seek the orb rises at the bead instead of the pointer, and names the time it landed on. */
+    :scope[data-scry-keys] .media-time-slider:not([data-dragging], [data-pointing]) .media-time-slider-preview {
+      --media-slider-pointer: var(--media-slider-fill);
+      opacity: 1;
+      scale: 1;
+    }
+
+    .scry-value-current,
+    :scope[data-scry-keys] .media-time-slider:not([data-dragging], [data-pointing]) .media-time-slider-value {
+      display: none;
+    }
+
+    :scope[data-scry-keys] .media-time-slider:not([data-dragging], [data-pointing]) .scry-value-current {
+      display: inline;
+    }
+
     .scry-orb {
       width: var(--scry-orb-size);
       aspect-ratio: 1;
@@ -589,6 +605,7 @@
     }
 
     /* One orb at a time: looking ahead hides the play orb. */
+    :scope[data-scry-keys] .video-controls-center,
     :scope:has(.media-time-slider:is([data-dragging], [data-pointing])) .video-controls-center {
       pointer-events: none;
       opacity: 0;

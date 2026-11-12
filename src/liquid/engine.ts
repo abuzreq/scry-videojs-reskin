@@ -24,6 +24,8 @@ export interface OrbView {
   bloom: number;
   /** 0 the orb's own picture, 1 fully given way to the video underneath. */
   reveal: number;
+  /** 0..1: how much of the detail picture (see `setDetail`) to show in place of the storyboard. */
+  detail: number;
   /** Extra defocus, in mip levels, for fast scrubbing. */
   smear: number;
   /** Small parallax offset, -1..1 on each axis. */
@@ -70,6 +72,7 @@ export class LiquidEngine {
   #flowTexture: WebGLTexture | null = null;
   #flowFramebuffer: WebGLFramebuffer | null = null;
   #levels: [Target, Target][] = [];
+  #detailTexture: WebGLTexture | null = null;
   #flowDone: Uint8Array = new Uint8Array(0);
   #flowPending = 0;
   #focus = 0;
@@ -219,6 +222,25 @@ export class LiquidEngine {
     this.#flowPending = count - 1;
   }
 
+  /**
+   * A sharper picture of one exact moment, framed like the tiles, to show while the pointer rests there. `image`
+   * must be readable (same origin or CORS-enabled).
+   */
+  setDetail(image: TexImageSource): void {
+    if (this.#lost) return;
+
+    const gl = this.#gl;
+
+    this.#detailTexture ??= gl.createTexture();
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this.#detailTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  }
+
   /** The tile at or before `time`, and how far `time` has moved toward the next one. */
   locate(time: number): { index: number; mix: number } {
     const tiles = this.#tiles;
@@ -305,6 +327,11 @@ export class LiquidEngine {
     gl.uniform1f(uniforms.uReveal!, view.reveal);
     gl.uniform1f(uniforms.uPixelRatio!, view.pixelRatio);
     gl.uniform2f(uniforms.uTilt!, view.tilt[0], view.tilt[1]);
+
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this.#detailTexture);
+    gl.uniform1i(uniforms.uDetail!, 2);
+    gl.uniform1f(uniforms.uDetailMix!, this.#detailTexture ? view.detail : 0);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -484,6 +511,7 @@ export class LiquidEngine {
 
     gl.deleteTexture(this.#tileTexture);
     gl.deleteTexture(this.#flowTexture);
+    gl.deleteTexture(this.#detailTexture);
     gl.deleteFramebuffer(this.#flowFramebuffer);
 
     for (const pair of this.#levels) {
@@ -495,6 +523,7 @@ export class LiquidEngine {
 
     this.#tileTexture = null;
     this.#flowTexture = null;
+    this.#detailTexture = null;
     this.#flowFramebuffer = null;
     this.#levels = [];
     this.#tiles = [];

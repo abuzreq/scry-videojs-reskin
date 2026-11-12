@@ -17,6 +17,12 @@ const REVEAL_SECONDS = 0.3;
 /** Longest the opened orb waits for the player to show the new frame before giving way anyway. */
 const REVEAL_TIMEOUT = 1.6;
 const MAX_PIXELS = 2_400_000;
+/** How long the orb stays up after a keyboard seek. */
+const KEY_LINGER = 1400;
+const SEEK_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
+/** The pointer has to rest this long before the exact frame is fetched. */
+const DWELL_SECONDS = 0.16;
+const DETAIL_WIDTH = 512;
 
 type Phase = 'idle' | 'scry' | 'bloom';
 
@@ -72,6 +78,13 @@ export class ScryVisionElement extends UIElement {
   #pressed = false;
   #releaseLock: (() => void) | null = null;
   #deltaText = '';
+  #keysUntil = 0;
+  #detailBase: string | null = null;
+  #detailTime: number | null = null;
+  #detailRequested: number | null = null;
+  #detail = 0;
+  #still = 0;
+  #lastTarget = 0;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -126,6 +139,20 @@ export class ScryVisionElement extends UIElement {
 
     this.#slider.addEventListener('pointerleave', () => (this.#suppressedState = false), { signal });
 
+    // Seeking from the keyboard gets the same look ahead: the orb rises at the bead for a moment after each step.
+    this.#slider.addEventListener(
+      'keydown',
+      (event) => {
+        if (!SEEK_KEYS.has(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
+
+        this.#keysUntil = performance.now() + KEY_LINGER;
+        this.#container?.setAttribute('data-scry-keys', '');
+        this.#wake();
+      },
+      { signal }
+    );
+    this.#slider.addEventListener('focusout', () => this.#endKeys(), { signal });
+
     const resize = new ResizeObserver(() => this.#resize());
 
     resize.observe(this);
@@ -147,6 +174,7 @@ export class ScryVisionElement extends UIElement {
     this.#container?.removeAttribute('data-scry-gl');
     this.#container?.removeAttribute('data-scry-bloom');
     this.#container?.removeAttribute('data-scry-quiet');
+    this.#container?.removeAttribute('data-scry-keys');
   }
 
   update(changed: PropertyValues): void {
@@ -176,6 +204,9 @@ export class ScryVisionElement extends UIElement {
         if (!engine) return;
 
         engine.setStoryboard(image, board.tiles);
+        this.#detailBase = detailBase(board.url);
+        this.#detailTime = null;
+        this.#detailRequested = null;
         this.#syncMode();
         this.#wake();
       })
@@ -271,11 +302,16 @@ export class ScryVisionElement extends UIElement {
     const pointing = slider.hasAttribute('data-pointing') || dragging;
     const duration = Number.isFinite(time.duration) ? time.duration : 0;
     const pointer = (Number.parseFloat(slider.style.getPropertyValue('--media-slider-pointer')) || 0) / 100;
-    const looking = pointing && !this.#suppressedState && duration > 0;
+    const byKeys = !pointing && this.#keysUntil > 0;
+
+    if (byKeys && now > this.#keysUntil) this.#endKeys();
+
+    const looking = duration > 0 && ((pointing && !this.#suppressedState) || this.#keysUntil > 0);
 
     if (this.#phase !== 'bloom') {
       if (looking) {
-        this.#target = pointer * duration;
+        // From the keyboard there is no pointer: the orb looks at wherever the seek has landed.
+        this.#target = pointing ? pointer * duration : time.currentTime;
 
         if (this.#phase === 'idle') {
           // A fresh look starts where the pointer is, rather than sweeping in from the last one.
@@ -293,7 +329,7 @@ export class ScryVisionElement extends UIElement {
       }
     }
 
-    this.#writeDelta(looking ? this.#target - time.currentTime : null);
+    this.#writeDelta(looking && pointing ? this.#target - time.currentTime : null);
 
     const engine = this.#engine;
 
@@ -329,6 +365,18 @@ export class ScryVisionElement extends UIElement {
       }
     }
 
+    // Resting on one moment brings it into focus: fetch the exact frame and let it replace the approximation.
+    const steady = Math.abs(this.#target - this.#lastTarget) < 0.02;
+
+    this.#lastTarget = this.#target;
+    this.#still = steady && visible ? this.#still + dt : 0;
+
+    if (this.#still > DWELL_SECONDS) this.#requestDetail(this.#target);
+
+    const focused = this.#detailTime !== null && Math.abs(this.#target - this.#detailTime) < 0.06 && visible;
+
+    this.#detail += ((focused ? 1 : 0) - this.#detail) * (1 - Math.exp(-dt * (focused ? 9 : 24)));
+
     if (this.dataset.phase !== this.#phase) this.dataset.phase = this.#phase;
 
     if (engine.pending > 0) engine.solve(2, this.#shown);
@@ -349,6 +397,7 @@ export class ScryVisionElement extends UIElement {
         presence: this.#presence,
         bloom: this.#bloom,
         reveal: this.#reveal,
+        detail: this.#detail,
         // Fast travel softens the picture a little and leans it into the direction of travel.
         smear: Math.min(1.4, Math.abs(speed) * 0.09),
         tilt: [Math.max(-1, Math.min(1, speed * 0.06)), 0],
@@ -362,6 +411,39 @@ export class ScryVisionElement extends UIElement {
       this.#frame = requestAnimationFrame(this.#tick);
     }
   };
+
+  #endKeys(): void {
+    if (this.#keysUntil === 0) return;
+
+    this.#keysUntil = 0;
+    this.#container?.removeAttribute('data-scry-keys');
+    this.#wake();
+  }
+
+  /** Ask for the exact frame at `time`. Only Mux storyboards say where to find one. */
+  #requestDetail(time: number): void {
+    const base = this.#detailBase;
+    const engine = this.#engine;
+    const rounded = Math.round(time * 10) / 10;
+
+    if (!base || !engine || this.#detailRequested === rounded) return;
+
+    this.#detailRequested = rounded;
+
+    const image = new Image();
+
+    image.crossOrigin = 'anonymous';
+    image.decoding = 'async';
+    image.onload = () => {
+      // Only if the pointer is still resting where it was when this was asked for.
+      if (this.#detailRequested !== rounded || !this.#engine?.alive) return;
+
+      this.#engine.setDetail(image);
+      this.#detailTime = time;
+      this.#wake();
+    };
+    image.src = `${base}?time=${rounded}&width=${DETAIL_WIDTH}`;
+  }
 
   /** The slider let go: open the orb over the frame. */
   #commit(): void {
@@ -410,6 +492,8 @@ export class ScryVisionElement extends UIElement {
     this.#bloom = 0;
     this.#reveal = 0;
     this.#latched = null;
+    this.#detail = 0;
+    this.#still = 0;
     this.#container?.removeAttribute('data-scry-bloom');
     this.#unlock();
     this.#wake();
@@ -505,8 +589,19 @@ const IDLE_VIEW = {
   presence: 0,
   bloom: 0,
   reveal: 0,
+  detail: 0,
   smear: 0,
   tilt: [0, 0] as [number, number],
 };
+
+/** Mux serves a still of any moment next to its storyboards; other hosts get no detail picture. */
+function detailBase(spriteUrl: string): string | null {
+  const match = /^https:\/\/image\.mux\.com\/([^/?#]+)\/storyboard\.\w+(\?.*)?$/.exec(spriteUrl);
+
+  // Signed playback needs a separate token per image, which the skin does not have.
+  if (!match || /[?&]token=/.test(match[2] ?? '')) return null;
+
+  return `https://image.mux.com/${match[1]}/thumbnail.webp`;
+}
 
 if (!customElements.get('scry-vision')) customElements.define('scry-vision', ScryVisionElement);

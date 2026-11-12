@@ -203,6 +203,8 @@ uniform float uPresence;
 uniform float uReveal;
 uniform float uPixelRatio;
 uniform vec2 uTilt;
+uniform sampler2D uDetail;
+uniform float uDetailMix;
 out vec4 outColor;
 
 /** Where a point of the sphere (p in -1..1, r = |p|) looks in the picture: tight in the middle, wide at the rim. */
@@ -255,6 +257,9 @@ void main() {
   } else {
     col = morph(uvG);
   }
+
+  // When the pointer rests, the exact frame for that moment replaces the storyboard's approximation.
+  if (uDetailMix > 0.001) col = mix(col, texture(uDetail, uvG).rgb, uDetailMix);
 
   // Glass: darker where it is thick toward the rim, a bright edge where light grazes it, a window reflection.
   float body = mix(1.0, 0.58, smoothstep(0.5, 1.0, r) * lens);

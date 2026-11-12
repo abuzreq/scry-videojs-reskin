@@ -79,6 +79,7 @@ async function main() {
           presence: 1,
           bloom: bloom ? f : 0,
           reveal: 0,
+          detail: 0,
           smear: 0,
           tilt: [0, 0],
           pixelRatio: 1,
