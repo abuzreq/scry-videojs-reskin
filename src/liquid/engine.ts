@@ -26,6 +26,10 @@ export interface OrbView {
   reveal: number;
   /** 0..1: how much of the detail picture (see `setDetail`) to show in place of the storyboard. */
   detail: number;
+  /** Sideways move of the eye, in picture units; only shows where depth is known. */
+  parallax: [number, number];
+  /** Forward move of the eye, 0 for none; only shows where depth is known. */
+  dolly: number;
   /** Extra defocus, in mip levels, for fast scrubbing. */
   smear: number;
   /** Small parallax offset, -1..1 on each axis. */
@@ -73,6 +77,9 @@ export class LiquidEngine {
   #flowFramebuffer: WebGLFramebuffer | null = null;
   #levels: [Target, Target][] = [];
   #detailTexture: WebGLTexture | null = null;
+  #depthTexture: WebGLTexture | null = null;
+  #depthSize: [number, number] = [0, 0];
+  #depthDone: Uint8Array = new Uint8Array(0);
   #flowDone: Uint8Array = new Uint8Array(0);
   #flowPending = 0;
   #focus = 0;
@@ -220,6 +227,41 @@ export class LiquidEngine {
 
     this.#flowDone = new Uint8Array(count - 1);
     this.#flowPending = count - 1;
+    this.#depthDone = new Uint8Array(count);
+  }
+
+  /** Whether `setDepth` has been given this tile. */
+  hasDepth(layer: number): boolean {
+    return this.#depthDone[layer] === 1;
+  }
+
+  /**
+   * Give one tile its depth map (one byte per pixel from the top row, 0 far and 255 near). Every map must be the same
+   * size. Tiles without one are drawn flat, as before.
+   */
+  setDepth(layer: number, data: Uint8Array, width: number, height: number): void {
+    if (this.#lost || layer < 0 || layer >= this.#tiles.length || data.length !== width * height) return;
+
+    const gl = this.#gl;
+
+    if (!this.#depthTexture || this.#depthSize[0] !== width || this.#depthSize[1] !== height) {
+      gl.deleteTexture(this.#depthTexture);
+      this.#depthTexture = gl.createTexture();
+      this.#depthSize = [width, height];
+      this.#depthDone.fill(0);
+      gl.activeTexture(gl.TEXTURE3);
+      gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.#depthTexture);
+      gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.R8, width, height, this.#tiles.length);
+      gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.#depthTexture);
+    gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, width, height, 1, gl.RED, gl.UNSIGNED_BYTE, data);
+    this.#depthDone[layer] = 1;
   }
 
   /**
@@ -318,7 +360,7 @@ export class LiquidEngine {
     const { index, mix } = this.locate(view.time);
     const { uniforms } = this.#use(this.#orb);
 
-    this.#bindMorph(uniforms, index, mix, view.smear);
+    this.#bindMorph(uniforms, index, mix, view.smear, view.parallax, view.dolly);
     gl.uniform2f(uniforms.uResolution!, this.canvas.width, this.canvas.height);
     gl.uniform3f(uniforms.uOrb!, view.x, view.y, view.radius);
     gl.uniform4f(uniforms.uFrame!, view.frame.x, view.frame.y, view.frame.width, view.frame.height);
@@ -350,7 +392,7 @@ export class LiquidEngine {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(x, this.canvas.height - y - height, width, height);
-    this.#bindMorph(uniforms, index, mix, 0);
+    this.#bindMorph(uniforms, index, mix, 0, [0, 0], 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
@@ -359,7 +401,14 @@ export class LiquidEngine {
     this.#gl.getExtension('WEBGL_lose_context')?.loseContext();
   }
 
-  #bindMorph(uniforms: Program['uniforms'], index: number, mix: number, smear: number): void {
+  #bindMorph(
+    uniforms: Program['uniforms'],
+    index: number,
+    mix: number,
+    smear: number,
+    parallax: [number, number],
+    dolly: number
+  ): void {
     const gl = this.#gl;
     const last = this.#tiles.length - 1;
     const next = mix > 0 ? Math.min(index + 1, last) : index;
@@ -376,6 +425,18 @@ export class LiquidEngine {
     gl.uniform1f(uniforms.uSmear!, smear);
     gl.uniform2f(uniforms.uTileSize!, this.#tileSize[0], this.#tileSize[1]);
     gl.uniform1f(uniforms.uFlowReady!, this.#flowDone[index] ? 1 : 0);
+
+    // Unit 3 always holds an array texture, so the sampler is valid even before any depth exists.
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.#depthTexture ?? this.#tileTexture);
+    gl.uniform1i(uniforms.uDepth!, 3);
+    gl.uniform2f(
+      uniforms.uDepthReady!,
+      this.#depthTexture && this.#depthDone[index] ? 1 : 0,
+      this.#depthTexture && this.#depthDone[next] ? 1 : 0
+    );
+    gl.uniform2f(uniforms.uParallax!, parallax[0], parallax[1]);
+    gl.uniform1f(uniforms.uDolly!, dolly);
   }
 
   #solvePair(pair: number): void {
@@ -512,6 +573,7 @@ export class LiquidEngine {
     gl.deleteTexture(this.#tileTexture);
     gl.deleteTexture(this.#flowTexture);
     gl.deleteTexture(this.#detailTexture);
+    gl.deleteTexture(this.#depthTexture);
     gl.deleteFramebuffer(this.#flowFramebuffer);
 
     for (const pair of this.#levels) {
@@ -524,6 +586,8 @@ export class LiquidEngine {
     this.#tileTexture = null;
     this.#flowTexture = null;
     this.#detailTexture = null;
+    this.#depthTexture = null;
+    this.#depthDone = new Uint8Array(0);
     this.#flowFramebuffer = null;
     this.#levels = [];
     this.#tiles = [];

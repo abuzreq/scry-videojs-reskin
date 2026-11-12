@@ -45,6 +45,12 @@ smaller and its caption is the time alone. Under 21rem the captions button goes 
 - Fallback (no WebGL2, context lost, or reduced motion): the still storyboard thumbnail inside a CSS glass circle.
   No storyboard at all: caption only.
 
+## Depth tier (opt-in)
+
+With `depth="auto"`, a small depth model looks at each storyboard tile in the background. Where a tile's depth is
+known the orb's picture has parallax: a slow orbit of the eye, a lean into the direction of travel, a push forward as
+the orb opens, and across cuts the far of the new picture settles before its foreground. Off by default.
+
 ## Icons
 
 One set, drawn for the skin: 20 grid, 1.5 stroke, round caps and joins, outlines only. States that would otherwise be

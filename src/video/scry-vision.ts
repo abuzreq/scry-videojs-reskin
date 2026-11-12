@@ -7,7 +7,8 @@ import {
   selectTime,
   UIElement,
 } from '@videojs/html';
-import { LiquidEngine } from '../liquid/engine';
+import type { DepthDevice, DepthEstimator } from '../liquid/depth';
+import { LiquidEngine, type Tile } from '../liquid/engine';
 import { loadSprite, tilesFromCues } from '../liquid/storyboard';
 
 /** How quickly the picture in the orb catches the pointer. Higher is tighter; this settles in about a third of a second. */
@@ -38,6 +39,10 @@ interface Circle {
  * While the pointer is on the timeline it draws the orb: the storyboard picture for that moment, flowing between
  * tiles instead of flipping, inside a glass sphere placed over the `.scry-orb` anchor in the slider preview. On
  * release the orb opens over the frame and gives way to the video once the player has caught up.
+ *
+ * The `depth` attribute switches on the optional depth tier, which gives the picture in the orb real parallax:
+ * `depth="auto"` uses it where WebGPU is available and the viewer has not asked to save data, `depth="wasm"` forces
+ * the (slow) WebAssembly backend, and leaving it off downloads nothing.
  *
  * It is decoration over working controls. The time slider keeps doing the seeking, the labelling and the keyboard;
  * without WebGL2, without a storyboard, or with reduced motion, the anchor shows the still thumbnail instead.
@@ -85,6 +90,9 @@ export class ScryVisionElement extends UIElement {
   #detail = 0;
   #still = 0;
   #lastTarget = 0;
+  #depth: DepthEstimator | null = null;
+  #depthRun = 0;
+  #clock = 0;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -171,6 +179,8 @@ export class ScryVisionElement extends UIElement {
     this.#canvas?.remove();
     this.#canvas = null;
     this.#storyboardKey = '';
+    this.#stopDepth();
+    this.#container?.removeAttribute('data-scry-depth');
     this.#container?.removeAttribute('data-scry-gl');
     this.#container?.removeAttribute('data-scry-bloom');
     this.#container?.removeAttribute('data-scry-quiet');
@@ -208,6 +218,7 @@ export class ScryVisionElement extends UIElement {
         this.#detailTime = null;
         this.#detailRequested = null;
         this.#syncMode();
+        this.#startDepth(image, board.tiles);
         this.#wake();
       })
       .catch(() => {
@@ -381,6 +392,8 @@ export class ScryVisionElement extends UIElement {
 
     if (engine.pending > 0) engine.solve(2, this.#shown);
 
+    this.#clock += dt;
+
     const host = this.getBoundingClientRect();
     const scale = this.#canvas.width / Math.max(1, host.width);
     const circle = this.#latched ?? this.#measure(host);
@@ -401,6 +414,12 @@ export class ScryVisionElement extends UIElement {
         // Fast travel softens the picture a little and leans it into the direction of travel.
         smear: Math.min(1.4, Math.abs(speed) * 0.09),
         tilt: [Math.max(-1, Math.min(1, speed * 0.06)), 0],
+        // Where depth is known the eye drifts in a slow orbit, leans with the travel, and pushes in as the orb opens.
+        parallax: [
+          0.03 * Math.sin(this.#clock * 0.9) + Math.max(-0.05, Math.min(0.05, speed * 0.012)),
+          0.018 * Math.cos(this.#clock * 0.7),
+        ],
+        dolly: 0.5 * Math.sin(Math.PI * this.#bloom),
         pixelRatio: scale,
       });
     } else {
@@ -411,6 +430,76 @@ export class ScryVisionElement extends UIElement {
       this.#frame = requestAnimationFrame(this.#tick);
     }
   };
+
+  /** Which backend the depth tier may use here, or null when it stays off. */
+  #depthDevice(): DepthDevice | null {
+    const mode = this.getAttribute('depth');
+
+    if (mode === 'wasm') return 'wasm';
+    if (mode !== 'auto' || this.#reducedMotion?.matches) return null;
+
+    const saveData = (navigator as { connection?: { saveData?: boolean } }).connection?.saveData;
+
+    return 'gpu' in navigator && !saveData ? 'webgpu' : null;
+  }
+
+  /**
+   * Work through the storyboard in the background, nearest the playhead first, handing each tile's depth to the
+   * engine as it arrives. Any failure (no network, an unsupported GPU, a model that will not load) just leaves the
+   * orb as it was.
+   */
+  async #startDepth(image: HTMLImageElement, tiles: Tile[]): Promise<void> {
+    this.#stopDepth();
+
+    const device = this.#depthDevice();
+    const run = ++this.#depthRun;
+
+    if (!device || tiles.length === 0) return;
+
+    try {
+      const { DepthEstimator, depthInputSize } = await import('../liquid/depth');
+
+      if (run !== this.#depthRun) return;
+
+      const estimator = new DepthEstimator(device);
+
+      this.#depth = estimator;
+      await estimator.ready;
+
+      const size = depthInputSize(tiles[0]!.width, tiles[0]!.height);
+      const start = this.#engine?.locate(this.#time.value?.currentTime ?? 0).index ?? 0;
+      const order = tiles.map((_, index) => index).sort((a, b) => Math.abs(a - start) - Math.abs(b - start));
+
+      for (const index of order) {
+        if (run !== this.#depthRun || !this.#engine?.alive) return;
+
+        const tile = tiles[index]!;
+        const bitmap = await createImageBitmap(image, tile.x, tile.y, tile.width, tile.height, {
+          resizeWidth: size.width,
+          resizeHeight: size.height,
+          resizeQuality: 'medium',
+        });
+        const map = await estimator.estimate(bitmap);
+
+        if (run !== this.#depthRun) return;
+
+        this.#engine?.setDepth(index, map.data, map.width, map.height);
+        this.#container?.setAttribute('data-scry-depth', '');
+        this.#wake();
+      }
+    } catch {
+      // Stay flat.
+    } finally {
+      // The model is only needed while there are tiles left to look at.
+      if (run === this.#depthRun) this.#stopDepth();
+    }
+  }
+
+  #stopDepth(): void {
+    this.#depthRun++;
+    this.#depth?.dispose();
+    this.#depth = null;
+  }
 
   #endKeys(): void {
     if (this.#keysUntil === 0) return;
@@ -590,6 +679,8 @@ const IDLE_VIEW = {
   bloom: 0,
   reveal: 0,
   detail: 0,
+  parallax: [0, 0] as [number, number],
+  dolly: 0,
   smear: 0,
   tilt: [0, 0] as [number, number],
 };

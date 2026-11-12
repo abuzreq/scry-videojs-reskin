@@ -9,9 +9,21 @@ and the lens. There is no model to download and no extension to enable. With a M
 moment also fetches that exact frame from Mux so the orb comes into focus. Without WebGL2, without a storyboard, or
 with reduced motion turned on, the orb shows the still thumbnail instead.
 
+## Depth tier (opt-in)
+
+Add `depth="auto"` to `<scry-vision>` (or `?depth=auto` to the showcase or preview URL) and the orb gains real
+parallax: Depth Anything V2 Small estimates depth for each storyboard tile in a worker, and the picture in the orb
+drifts, leans and pushes in as a volume instead of a flat card. `auto` uses WebGPU where it exists and the viewer has
+not asked to save data; `depth="wasm"` forces the slower WebAssembly backend. This is the only part that downloads
+anything beyond the page: the model (about 19 MB on WebGPU, 27 MB on WebAssembly) from the Hugging Face hub and the
+ONNX runtime from jsDelivr, once, cached by the browser. It is off by default, and if it fails the orb stays flat.
+
+## Layout
+
 - `src/video/` — the skin: markup (`skin.html`), elements and icons (`skin.ts`, `icons/`), styles (`skin.css` for
   structure, `scry.css` for the look), and `scry-vision.ts`, the element that draws the orb.
-- `src/liquid/` — the engine, with no dependency on Video.js: `engine.ts`, `shaders.ts`, `storyboard.ts`.
+- `src/liquid/` — the engine, with no dependency on Video.js: `engine.ts`, `shaders.ts`, `storyboard.ts`, and the
+  optional `depth.ts` and `depth.worker.ts`.
 - `design/spec.md` — the design.
 - `apps/preview/` — the showcase page (`index.html`), the Video.js workbench (`workbench.html`) and the frame it
   previews (`preview.html`).

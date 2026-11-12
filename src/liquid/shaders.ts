@@ -129,6 +129,11 @@ uniform float uMix;
 uniform float uSmear;
 uniform vec2 uTileSize;
 uniform float uFlowReady;
+// Optional depth per tile (0 far, 1 near), present once the depth tier has looked at a tile.
+uniform sampler2DArray uDepth;
+uniform vec2 uDepthReady;
+uniform vec2 uParallax;
+uniform float uDolly;
 
 vec3 tile(float layer, vec2 uv, float lod) {
   if (lod < 0.05) return textureLod(uTiles, vec3(uv, layer), 0.0).rgb;
@@ -142,8 +147,27 @@ vec3 tile(float layer, vec2 uv, float lod) {
   return c;
 }
 
+/**
+ * With depth, the picture stops being a flat card: a small sideways move of the eye shifts near things further than
+ * far ones, and moving forward makes near things grow faster.
+ */
+vec2 inDepth(vec2 uv, float layer, float ready, out float depth) {
+  depth = 0.5;
+  if (ready < 0.5) return uv;
+  depth = textureLod(uDepth, vec3(uv, layer), 0.0).r;
+  float near = depth - 0.5;
+  return vec2(0.5) + (uv - vec2(0.5)) * (1.0 - uDolly * near) - uParallax * near;
+}
+
+/** The same move of the eye for a picture that is not a tile: borrow the depth of whichever tile is closer in time. */
+vec2 inNearestDepth(vec2 uv) {
+  float depth;
+  return uMix < 0.5 ? inDepth(uv, uA, uDepthReady.x, depth) : inDepth(uv, uB, uDepthReady.y, depth);
+}
+
 vec3 morph(vec2 p) {
-  if (uA == uB) return tile(uA, p, uSmear);
+  float depthA, depthB;
+  if (uA == uB) return tile(uA, inDepth(p, uA, uDepthReady.x, depthA), uSmear);
 
   // The top mip of the flow layer is the pair's average agreement: one number for "same shot or not".
   float related = smoothstep(0.3, 0.62, textureLod(uFlow, vec3(0.5, 0.5, uA), 16.0).b) * uFlowReady;
@@ -164,6 +188,9 @@ vec3 morph(vec2 p) {
   ua = centre + (ua - centre) / (1.0 + push * s);
   ub = centre + (ub - centre) * (1.0 + push * (1.0 - s));
 
+  ua = inDepth(ua, uA, uDepthReady.x, depthA);
+  ub = inDepth(ub, uB, uDepthReady.y, depthB);
+
   float lodA = uSmear + 3.6 * cut * smoothstep(0.0, 0.7, s);
   float lodB = uSmear + 3.6 * cut * smoothstep(0.0, 0.7, 1.0 - s);
   vec3 a = tile(uA, ua, lodA);
@@ -171,7 +198,9 @@ vec3 morph(vec2 p) {
 
   // Light leads: bright parts of the incoming picture surface first.
   float glow = luma(textureLod(uTiles, vec3(ub, uB), 4.5).rgb);
-  float threshold = mix(0.5, 0.72 - 0.44 * glow, cut);
+  // With depth, distance leads as well: the far of the new picture settles first and its foreground steps in last.
+  float order = mix(0.72 - 0.44 * glow, 0.3 + 0.42 * depthB, 0.6 * uDepthReady.y);
+  float threshold = mix(0.5, order, cut);
   float liquid = smoothstep(threshold - 0.27, threshold + 0.27, s);
   float w = mix(s, liquid, cut);
 
@@ -259,7 +288,7 @@ void main() {
   }
 
   // When the pointer rests, the exact frame for that moment replaces the storyboard's approximation.
-  if (uDetailMix > 0.001) col = mix(col, texture(uDetail, uvG).rgb, uDetailMix);
+  if (uDetailMix > 0.001) col = mix(col, texture(uDetail, inNearestDepth(uvG)).rgb, uDetailMix);
 
   // Glass: darker where it is thick toward the rim, a bright edge where light grazes it, a window reflection.
   float body = mix(1.0, 0.58, smoothstep(0.5, 1.0, r) * lens);

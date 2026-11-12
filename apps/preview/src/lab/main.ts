@@ -41,7 +41,54 @@ async function main() {
   const aspect = tiles[0]!.width / tiles[0]!.height;
   const timeAt = (pair: number, f: number) => tiles[pair]!.time + (tiles[pair + 1]!.time - tiles[pair]!.time) * f;
 
-  if (mode === 'flat') {
+  if (mode === 'depth') {
+    // Tiles on the top row, the model's depth for each underneath (white is near).
+    const { DepthEstimator, depthInputSize } = await import('@/liquid/depth');
+    const estimator = new DepthEstimator((params.get('device') as 'webgpu' | 'wasm') ?? 'wasm');
+    const t3 = performance.now();
+
+    await estimator.ready;
+    log(`model ready in ${((performance.now() - t3) / 1000).toFixed(1)}s`);
+
+    const size = depthInputSize(tiles[0]!.width, tiles[0]!.height);
+    const sheet = document.createElement('canvas');
+    const w = cell;
+    const h = Math.round(cell / aspect);
+
+    sheet.width = w * pairs.length;
+    sheet.height = h * 2;
+
+    const context = sheet.getContext('2d')!;
+    const times: number[] = [];
+
+    for (const [column, index] of pairs.entries()) {
+      const tile = tiles[index]!;
+      const t4 = performance.now();
+      const bitmap = await createImageBitmap(image, tile.x, tile.y, tile.width, tile.height, {
+        resizeWidth: size.width,
+        resizeHeight: size.height,
+      });
+      const map = await estimator.estimate(bitmap);
+
+      times.push(performance.now() - t4);
+      context.drawImage(image, tile.x, tile.y, tile.width, tile.height, column * w, 0, w, h);
+
+      const picture = new ImageData(map.width, map.height);
+
+      map.data.forEach((value, i) => picture.data.set([value, value, value, 255], i * 4));
+
+      const scratch = document.createElement('canvas');
+
+      scratch.width = map.width;
+      scratch.height = map.height;
+      scratch.getContext('2d')!.putImageData(picture, 0, 0);
+      context.drawImage(scratch, column * w, h, w, h);
+    }
+
+    log(`input ${size.width}x${size.height}, per tile ${times.map((t) => t.toFixed(0)).join(', ')} ms`);
+    estimator.dispose();
+    canvas.replaceWith(sheet);
+  } else if (mode === 'flat') {
     const w = cell;
     const h = Math.round(cell / aspect);
 
@@ -80,6 +127,8 @@ async function main() {
           bloom: bloom ? f : 0,
           reveal: 0,
           detail: 0,
+          parallax: [0, 0],
+          dolly: 0,
           smear: 0,
           tilt: [0, 0],
           pixelRatio: 1,

@@ -20,5 +20,10 @@ export function createPlayer(): HTMLElement {
     `<mux-video src="${SRC}" playsinline crossorigin><track kind="chapters" label="English" srclang="en" src="${CHAPTERS}" default></mux-video>`
   );
 
+  // The depth tier is opt-in while it is being evaluated: add ?depth=auto (WebGPU) or ?depth=wasm to the page URL.
+  const depth = new URLSearchParams(location.search).get('depth');
+
+  if (depth) player.querySelector('scry-vision')?.setAttribute('depth', depth);
+
   return player;
 }
