@@ -3,10 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>scry - Video.js</title>
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Scry is a crystal-ball skin for Video.js v10. Look into the orb to see where the video is going; let go and step into it."
+    />
+    <title>Scry — a crystal-ball skin for Video.js</title>
   </head>
-  <body class="text-foreground h-screen overflow-hidden font-sans">
-    <div id="root" class="h-full"></div>
-    <script type="module" src="/src/shell/main.tsx"></script>
+  <body>
+    <main class="page">
+      <header class="masthead">
+        <h1 class="wordmark">Scry</h1>
+        <p class="lede">A crystal-ball skin for Video.js&nbsp;v10.</p>
+      </header>
+
+      <div id="player" class="stage"></div>
+
+      <p class="hint">
+        Move along the timeline to look ahead. Hold still and the vision comes into focus. Let go and step into it.
+      </p>
+
+      <section class="notes" aria-label="About the skin">
+        <article>
+          <h2>Look ahead</h2>
+          <p>
+            The seek preview is a glass orb that rises from the playhead. Inside it the video flows from one moment to
+            the next instead of flipping between thumbnails.
+          </p>
+        </article>
+        <article>
+          <h2>On your device</h2>
+          <p>
+            Optical flow, the morph and the lens are fragment shaders running in your browser, with no model to
+            download. Resting on a moment fetches that one frame from the video's own host.
+          </p>
+        </article>
+        <article>
+          <h2>For everyone</h2>
+          <p>
+            Every control works from the keyboard and on touch. With reduced motion on, the orb holds a still frame and
+            seeking is instant.
+          </p>
+        </article>
+      </section>
+
+      <footer class="links">
+        <a href="./workbench.html">Open the workbench</a>
+        <a href="https://github.com/abuzreq/videojs-reskin">Source on GitHub</a>
+        <a href="https://videojs.org">Video.js</a>
+      </footer>
+    </main>
+    <script type="module" src="/src/showcase/main.ts"></script>
   </body>
 </html>

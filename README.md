@@ -4,14 +4,17 @@ A crystal-ball skin for [Video.js v10](https://videojs.org). Hover or drag the t
 playhead showing that moment of the video; as you move, the picture inside flows between frames instead of flipping.
 Let go and the orb opens into the frame.
 
-Everything runs on the viewer's device in WebGL2 fragment shaders: optical flow between storyboard tiles, the morph,
-and the lens. There is no model to download and no extension to enable. Without WebGL2, without a storyboard, or with
-reduced motion turned on, the orb shows the still thumbnail instead.
+The effect runs on the viewer's device in WebGL2 fragment shaders: optical flow between storyboard tiles, the morph,
+and the lens. There is no model to download and no extension to enable. With a Mux source, resting the pointer on a
+moment also fetches that exact frame from Mux so the orb comes into focus. Without WebGL2, without a storyboard, or
+with reduced motion turned on, the orb shows the still thumbnail instead.
 
 - `src/video/` — the skin: markup (`skin.html`), elements and icons (`skin.ts`, `icons/`), styles (`skin.css` for
   structure, `scry.css` for the look), and `scry-vision.ts`, the element that draws the orb.
 - `src/liquid/` — the engine, with no dependency on Video.js: `engine.ts`, `shaders.ts`, `storyboard.ts`.
 - `design/spec.md` — the design.
+- `apps/preview/` — the showcase page (`index.html`), the Video.js workbench (`workbench.html`) and the frame it
+  previews (`preview.html`).
 - `apps/preview/lab.html` — development page that renders contact sheets of the morph (`npm run dev`, then `/lab.html`).
 
 Licensed under the Apache License, Version 2.0.
