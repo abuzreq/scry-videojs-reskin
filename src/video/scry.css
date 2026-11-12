@@ -404,10 +404,10 @@
 
     .media-time-slider-preview {
       pointer-events: none;
-      bottom: calc(100% - var(--media-spacing) * 0.5);
+      bottom: calc(100% + var(--media-spacing) * 0.5);
       transform-origin: 50% 100%;
       justify-items: center;
-      gap: calc(var(--media-spacing) * 2);
+      gap: calc(var(--media-spacing) * 1.5);
       opacity: 0;
       scale: var(--media-hidden-preview-scale);
       display: grid;
@@ -497,13 +497,25 @@
       transition-duration: var(--media-duration-fast);
     }
 
+    /* The caption floats mid-picture, above the scrim, so it carries its own smoke-glass plate. */
     .scry-caption {
       justify-items: center;
-      gap: calc(var(--media-spacing) * 0.5);
-      max-width: max(var(--scry-orb-size), calc(var(--media-spacing) * 40));
+      gap: calc(var(--media-spacing) * 0.25);
+      max-width: max(var(--scry-orb-size), calc(var(--media-spacing) * 44));
+      padding: calc(var(--media-spacing) * 1.25) calc(var(--media-spacing) * 3);
       text-align: center;
-      text-shadow: var(--scry-ink-shadow);
+      background-color: var(--media-popover);
+      -webkit-backdrop-filter: var(--media-backdrop-filter-surface);
+      backdrop-filter: var(--media-backdrop-filter-surface);
+      box-shadow: var(--media-shadow-surface), var(--media-shadow-surface-inset);
+      border-radius: calc(var(--media-spacing) * 3);
       display: grid;
+    }
+
+    @media (forced-colors: active) {
+      .scry-caption {
+        border: 1px solid canvastext;
+      }
     }
 
     .media-time-slider-chapter-title {
@@ -588,9 +600,9 @@
       .video-controls-center-play:hover,
       .video-controls-center-play:focus-visible {
         background:
-          radial-gradient(56% 38% at 33% 20%, rgb(255 255 255 / 0.5), transparent 72%),
-          radial-gradient(42% 26% at 68% 86%, rgb(255 255 255 / 0.2), transparent 75%),
-          radial-gradient(closest-side, rgb(20 24 32 / 0.18) 55%, rgb(0 0 0 / 0.3) 88%, rgb(255 255 255 / 0.4) 100%) !important;
+          radial-gradient(56% 38% at 33% 20%, rgb(255 255 255 / 0.36), transparent 72%),
+          radial-gradient(42% 26% at 68% 86%, rgb(255 255 255 / 0.14), transparent 75%),
+          radial-gradient(closest-side, rgb(14 17 24 / 0.46) 50%, rgb(0 0 0 / 0.5) 88%, rgb(255 255 255 / 0.42) 100%) !important;
         -webkit-backdrop-filter: blur(6px) saturate(160%) brightness(1.06);
         backdrop-filter: blur(6px) saturate(160%) brightness(1.06);
         box-shadow:
