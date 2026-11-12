@@ -166,6 +166,66 @@
       box-shadow: var(--scry-focus-ring);
     }
 
+    /* Narrow players keep what matters in reach: time becomes a single tappable readout, then the secondary
+       buttons step aside. Captions stay available from the settings menu. */
+    @container media-root (width < 28rem) {
+      .media-time-current-value,
+      .media-time-separator,
+      .media-time-duration-value {
+        display: none;
+      }
+
+      .media-time-toggle {
+        display: inline;
+      }
+
+      .media-pip-button {
+        display: none;
+      }
+
+      .video-controls-bottom {
+        padding-inline: calc(var(--media-spacing) * 2);
+        padding-bottom: calc(var(--media-spacing) * 1.5);
+      }
+
+      .video-controls-top {
+        padding: calc(var(--media-spacing) * 2) calc(var(--media-spacing) * 2);
+      }
+
+      .video-controls-group {
+        gap: 0;
+      }
+
+      .media-button {
+        width: calc(var(--media-spacing) * 10);
+        height: calc(var(--media-spacing) * 10);
+      }
+
+      /* A short player has little room above the line: a smaller orb, and the time alone as its caption. */
+      :scope {
+        --scry-orb-size: clamp(4.5rem, 26cqi, 7rem);
+      }
+
+      .media-time-slider-chapter-title {
+        display: none;
+      }
+
+      .video-controls-center {
+        top: 40%;
+      }
+
+      /* The orb needs the room the title is in. */
+      :scope:has(.media-time-slider:is([data-dragging], [data-pointing])) .video-controls-top {
+        opacity: 0;
+      }
+    }
+
+    @container media-root (width < 21rem) {
+      .media-captions-button {
+        display: none;
+      }
+    }
+
     /* ---------- The horizon: a hairline timeline with a glass bead ---------- */
 
     .media-time-slider {
@@ -360,6 +420,13 @@
       display: none;
     }
 
+    /* Under a finger the orb sits a little higher, so the caption is not covered. */
+    @media (pointer: coarse) {
+      .media-time-slider-preview {
+        bottom: calc(100% + var(--media-spacing) * 2);
+      }
+    }
+
     .media-time-slider:is([data-dragging], [data-pointing]) .media-time-slider-preview {
       opacity: 1;
       scale: 1;
@@ -390,20 +457,27 @@
       inset: 0;
     }
 
+    /* The thumbnail component scales its tile to fill these minimums, so the circle is always covered. */
     .scry-orb .media-slider-thumbnail {
+      min-width: var(--scry-orb-size);
+      min-height: var(--scry-orb-size);
       max-width: none;
-      height: 100%;
-      aspect-ratio: 16 / 9;
       background-color: transparent;
       display: block;
       position: absolute;
+      top: 50%;
       left: 50%;
-      translate: -50% 0;
+      translate: -50% -50%;
       overflow: hidden;
     }
 
     .media-slider-thumbnail-image {
       display: block;
+    }
+
+    /* No storyboard, no orb: the caption alone still says where the pointer is. */
+    :scope:not([data-scry-gl]) .scry-orb:has(.media-slider-thumbnail:is([data-hidden], [data-error])) {
+      display: none;
     }
 
     /* While the WebGL orb draws, the anchor only gives it a place and a size. */
