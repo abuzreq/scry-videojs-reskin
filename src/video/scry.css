@@ -417,6 +417,12 @@
       visibility: hidden;
     }
 
+    /* Once the orb opens over the frame its caption has said its piece. */
+    :scope:is([data-scry-bloom], [data-scry-quiet]) .media-time-slider-preview {
+      opacity: 0;
+      transition-duration: var(--media-duration-fast);
+    }
+
     .scry-caption {
       justify-items: center;
       gap: calc(var(--media-spacing) * 0.5);

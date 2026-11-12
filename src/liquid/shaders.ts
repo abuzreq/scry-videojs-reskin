@@ -200,6 +200,7 @@ uniform vec3 uOrb;
 uniform vec4 uFrame;
 uniform float uBloom;
 uniform float uPresence;
+uniform float uReveal;
 uniform float uPixelRatio;
 uniform vec2 uTilt;
 out vec4 outColor;
@@ -219,7 +220,7 @@ void main() {
 
   // As it opens, the sphere grows from its place on the timeline until it reaches past the farthest corner.
   vec2 corner = max(uOrb.xy, uResolution - uOrb.xy);
-  float radius = mix(uOrb.z, length(corner) + 2.0, open) * mix(0.6, 1.0, uPresence);
+  float radius = mix(uOrb.z, length(corner) + 2.0, open);
   vec2 centre = mix(uOrb.xy, uFrame.xy + uFrame.zw * 0.5, open * open);
 
   vec2 p = (pixel - centre) / radius;
@@ -231,8 +232,11 @@ void main() {
   vec2 ps = (pixel - centre - vec2(0.0, radius * 0.1)) / radius;
   float shadow = 0.42 * lens * exp(-pow(max(length(ps) - 0.9, 0.0) * 4.2, 2.0)) * smoothstep(1.7, 0.9, length(ps));
 
+  // uReveal lets the real picture underneath take over once the player has caught up.
+  float keep = uPresence * (1.0 - uReveal);
+
   if (dist > aa) {
-    outColor = vec4(0.0, 0.0, 0.0, shadow * uPresence);
+    outColor = vec4(0.0, 0.0, 0.0, shadow * keep);
     return;
   }
 
@@ -266,7 +270,7 @@ void main() {
   float bounce = exp(-dot(k, k) * 1.8) * 0.16;
   col += vec3(1.0) * (sheen + glint + bounce) * lens;
 
-  float alpha = smoothstep(aa, -aa, dist) * uPresence;
+  float alpha = smoothstep(aa, -aa, dist) * keep;
   // Premultiplied, over whatever shadow would have shown through the antialiased edge.
-  outColor = vec4(col * alpha, alpha + shadow * uPresence * (1.0 - alpha));
+  outColor = vec4(col * alpha, alpha + shadow * keep * (1.0 - alpha));
 }`;

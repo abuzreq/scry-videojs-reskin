@@ -22,6 +22,8 @@ export interface OrbView {
   presence: number;
   /** 0 a sphere on the timeline, 1 opened over the whole frame. */
   bloom: number;
+  /** 0 the orb's own picture, 1 fully given way to the video underneath. */
+  reveal: number;
   /** Extra defocus, in mip levels, for fast scrubbing. */
   smear: number;
   /** Small parallax offset, -1..1 on each axis. */
@@ -300,6 +302,7 @@ export class LiquidEngine {
     gl.uniform4f(uniforms.uFrame!, view.frame.x, view.frame.y, view.frame.width, view.frame.height);
     gl.uniform1f(uniforms.uBloom!, view.bloom);
     gl.uniform1f(uniforms.uPresence!, view.presence);
+    gl.uniform1f(uniforms.uReveal!, view.reveal);
     gl.uniform1f(uniforms.uPixelRatio!, view.pixelRatio);
     gl.uniform2f(uniforms.uTilt!, view.tilt[0], view.tilt[1]);
 
