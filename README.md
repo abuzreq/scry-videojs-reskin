@@ -1,121 +1,172 @@
 # Scry
 
-A seeing-stone skin for [Video.js v10](https://videojs.org). The video is a rectangle until you travel through time:
-drag the timeline, drag sideways on the picture, or jump with the keys, and the picture curls up into an orb of dark
-glass in which the video flows from one moment to the next. The timeline curls onto the orb's rim. Arrive, and it uncurls onto
-the new frame. Buffering shows as fog in a small orb; the end of the video as an orb holding its opening frame.
+A [Video.js v10](https://videojs.org) skin that turns the video into a seeing-stone.
 
-The effect runs on the viewer's device in WebGL2 fragment shaders: optical flow between storyboard tiles, the morph,
-the wrap and the lens. There is no model to download and no extension to enable. With a Mux source, resting on a moment
-also fetches that exact frame from Mux so the orb comes into focus. Without WebGL2, or with reduced motion turned on,
-nothing wraps: seeks cut and the timeline preview shows a still thumbnail.
+Drag the timeline and the picture rolls up into an orb of dark glass. Inside it the video plays through as you
+scrub, instead of flipping between thumbnails, and the timeline bends around the orb's rim. Let go and it opens
+on the new frame.
 
-The orb is a dark seeing-stone by default: the picture surfaces out of black glass and a fire inside it brightens the
-harder time is driven. The rest of the skin follows: warm ink and old gold, icons cut with mitred corners and small
-diamonds, names in Roman capitals, menus and tooltips as dark tablets with a gold hairline, volume as a flame, and
-four engraved corner marks around the picture.
-`<scry-vision stone="glass">` (or `?stone=glass`) makes it clear crystal with cool white chrome instead.
+![The video wrapped into the stone, with the timeline curved around its rim](design/hero.png)
 
-Merely resting the pointer on the timeline peeks instead: a small orb at the pointer shows that moment and the
-picture is left alone.
+Made by [Ahmed Abuzuraiq](https://abuzreq.com/) for the
+[Video.js Skins Design Challenge](https://contra.com/community/topic/videojsskinschallenge/guidelines) on Contra,
+November 2026.
 
-## Captions
+## What it does
 
-The browser draws captions, and the skin sets their face, ink and plate through three properties on the player:
-`--scry-caption-font`, `--scry-caption-color` and `--scry-caption-plate`. The seeing-stone uses a book serif in warm
-white; clear glass uses the player's sans. Because media components such as `<mux-video>` keep their video in a
-shadow root, the skin hands the `::cue` rule into that root itself.
+- **Scrubbing wraps the picture.** Drag the timeline, or drag left and right on the picture itself. The video
+  becomes the stone and shows the footage moving as you go.
+- **Hovering peeks.** Rest the pointer on the timeline and a small stone shows that moment. The video is left
+  alone.
+- **Skips pass through the stone.** Arrow keys, number keys, double-click and a click on the timeline all take a
+  quick trip through it. Steps shorter than 2.5 seconds cut as usual.
+- **Waiting and ending use the same stone.** Buffering fills it with smoke. At the end it holds the opening frame
+  with the replay control inside.
+- **The rest of the player matches.** Incised icons, titles in Roman capitals, dark tablets with a gold hairline
+  for menus and tooltips, a flame for the volume, and four engraved corner marks around the picture.
 
-## Third-party material
+| Driving time: the fire comes up | Peeking from the timeline |
+| --- | --- |
+| ![The stone while scrubbing fast](design/hero-driven.png) | ![A small stone above the timeline](design/peek.png) |
 
-The display face is [Cinzel](https://github.com/NDISCOVER/Cinzel) (one weight, Latin), bundled in
-`src/video/fonts/` under the SIL Open Font License 1.1; its licence is `src/video/fonts/OFL.txt`. Everything else in
-the skin, including both icon sets, is original and under the Apache License 2.0. Text in scripts Cinzel does not
-cover falls back to the system serif.
+## How it works
 
-## Seeing the flow on its own
+Hosts such as Mux publish a storyboard with each video: one image holding a small frame every few seconds, meant
+for thumbnail previews. Scry loads that image into a WebGL2 texture and, for each pair of neighbouring frames,
+estimates how the picture moves between them (pyramidal Lucas–Kanade optical flow, written as fragment shaders).
+While you scrub it uses that motion to warp one frame toward the next and blends them, so a few dozen stills read
+as continuous footage. Where two frames have nothing in common, across a cut, it falls back to a dissolve.
 
-`<scry-vision shape="flat">` (or `?shape=flat` on the showcase or preview) keeps the picture a rectangle: time travel
-plays the same flowing picture across the whole frame with no lens, glass or stage, and hovering the timeline
-travels instead of peeking. `inspect` then shows what is behind it:
+The wrap, the lens, the glass, the smoke and the fire are one more shader pass on the same canvas. When the picture
+comes to rest, the exact frame is taken from the player (or fetched from Mux) and laid over the storyboard's
+approximation, so both ends of a trip are the true picture.
 
-- `inspect="compare"`: a plain crossfade on the left half, the flow morph on the right.
-- `inspect="flow"`: the flow field. Colour is the direction a point travels from one storyboard tile to the next,
-  strength the distance. One even colour means the whole picture moves together (a pan within a shot); a patchwork
-  means the two tiles share nothing (a cut), which is where the morph turns into a liquid dissolve.
-- `inspect="agreement"`: green where the two tiles match after the flow, red where they do not.
+Everything runs on the viewer's device. Nothing is uploaded and, by default, nothing is downloaded beyond the
+storyboard the player already uses.
 
-## Depth tier (opt-in)
-
-Add `depth="auto"` to `<scry-vision>` (or `?depth=auto` to the showcase or preview URL) and the orb gains real
-parallax: Depth Anything V2 Small estimates depth for each storyboard tile in a worker, and the picture in the orb
-drifts, leans and pushes in as a volume instead of a flat card. `auto` uses WebGPU where it exists and the viewer has
-not asked to save data; `depth="wasm"` forces the slower WebAssembly backend. This is the only part that downloads
-anything beyond the page: the model (about 19 MB on WebGPU, 27 MB on WebAssembly) from the Hugging Face hub and the
-ONNX runtime from jsDelivr, once, cached by the browser. It is off by default, and if it fails the orb stays flat.
-
-## Layout
-
-- `src/video/` — the skin.
-  - `skin.html`, `skin.ts`: the markup, and the elements and icons it registers. `icons/`, `fonts/`.
-  - Styles: `skin.css` for structure; `scry.css` for the shapes, `scry-arc.css` for the curved bar and
-    `scry-material.css` for what it is all made of (the seeing-stone, and clear glass as the variant).
-  - `scry-vision.ts`: the element that conducts the orb. Each frame it reads the player and the pointer, decides
-    where the picture is heading and which figure is on screen, and describes that to the engine.
-  - `scry-arc.ts`: the curved timeline.
-  - `vision/`: the parts of the orb's behaviour that stand on their own. `journey.ts` is the wrap's state machine
-    (closing, waiting for the new frame, opening); `spring.ts` moves the picture; `geometry.ts` is layout
-    arithmetic; `picture-drag.ts` recognises sideways drags; `exact-frame.ts` holds true frames;
-    `depth-tier.ts` runs the optional depth pass; `material.ts` and `captions.ts` dress the player.
-- `src/liquid/` — the engine, with no dependency on Video.js: `engine.ts`, `shaders.ts`, `storyboard.ts`, and the
-  optional `depth.ts` and `depth.worker.ts`.
-- `design/spec.md` — the design.
-- `apps/preview/` — the showcase page (`index.html`), the Video.js workbench (`workbench.html`) and the frame it
-  previews (`preview.html`).
-- `apps/preview/lab.html` — development page that renders contact sheets of the morph (`npm run dev`, then `/lab.html`).
-- `npm test` runs the unit tests for the parts that need no browser (`*.test.ts` beside what they test).
-
-By [Ahmed Abuzuraiq](https://abuzreq.com/). Licensed under the Apache License, Version 2.0.
-
----
-
-# scry
-
-A Video.js video skin for HTML, styled with CSS. It started from the Scaffold skin.
-
-## Develop
+## Run it
 
 ```sh
+npm install
 npm run dev
 ```
 
-The workbench opens your skin in a slimmed-down version of the Video.js sandbox. It plays NASA's Cosmic Dawn trailer from Mux, with chapters; change the media in `apps/preview/src/frame/player`. The options panel sets the player's width and aspect ratio, the color scheme, text direction, and language, and playback options such as autoplay, muted, loop, and preload. The arrow button opens the preview on its own. The settings live in the URL, so a link such as `/?width=384&ratio=9:16&dir=rtl&locale=ar` opens the workbench in that state, and `/preview.html#width=384&ratio=9:16` opens the preview alone.
+The home page plays the skin. `/workbench.html` opens it in the Video.js workbench, where you can change the
+player's size, aspect ratio, text direction and language. `/preview.html` is the player on its own.
 
-## Deploy
+To play something else, change the source in `apps/preview/src/frame/player.ts`. Any Mux or HLS source works; one
+with a storyboard track gets the full effect.
 
-```sh
-npm run deploy
+## Use the skin
+
+The skin is the contents of `src/`. Register it, then stamp its template into a player around your media element:
+
+```ts
+import '@videojs/html/video/player';
+import '@videojs/html/media/mux-video';
+import './src/video/skin';
+import skin from './src/video/skin.html?raw';
+
+const player = document.createElement('video-player');
+
+player.innerHTML = skin.replace(
+  '<!-- Add a compatible media component here. -->',
+  '<mux-video src="https://stream.mux.com/PLAYBACK_ID.m3u8" playsinline crossorigin></mux-video>'
+);
+document.body.append(player);
 ```
 
-It asks where to deploy the workbench: Vercel, Netlify, or Cloudflare Pages. Name one to skip the question, such as `npm run deploy vercel`. The first time, the host's CLI signs you in and creates the project, then every run prints the URL. Vercel and Netlify deploy to a preview URL you can share; to deploy to production instead, add `--prod` to the `deploy:netlify` script, or to both commands in `deploy:vercel`.
+`crossorigin` matters: the stone reads pixels from the storyboard and from the video, which needs CORS headers. Mux
+sends them.
 
-To deploy on every push instead, put the project on GitHub and import it on Vercel or Netlify; `vercel.json` and `netlify.toml` already describe the build. The build uses relative URLs, so `dist/` also works on any static host, including in a subfolder.
+### Options
 
-## Where things live
+Attributes on `<scry-vision>`, the element inside the skin that draws the stone:
 
-- `src/`: your skin, and only your skin. Keep, rewrite, or delete any of it.
-  - `src/video/`: the skin component and its parts.
-  - `src/styles/`: theme tokens and shared styles the skin imports, when it started from a packaged skin.
-  - `src/skin.css`: global styles for the skin.
-- `apps/preview/`: the workbench that previews the skin. You don't need to change it.
-  - `src/shell/`: the Shadcn shell.
-  - `src/frame/`: the page the shell frames. `player` mounts your skin in a player and sets the media it plays.
-  - `public/`: files the preview serves, such as the chapters track.
-- `vercel.json`, `netlify.toml`: how those hosts build the workbench.
-- `skin.json`: what this skin is built from. Keep it; it records the Video.js version the skin was created with.
+| Attribute | Effect |
+| --- | --- |
+| `stone="glass"` | Clear crystal and cool white controls instead of the dark seeing-stone. |
+| `shape="flat"` | Nothing wraps. The flowing picture plays across the plain rectangle, so the interpolation can be seen on its own. |
+| `inspect="compare"` | With `shape="flat"`: a plain crossfade on the left half, the flow-based blend on the right. |
+| `inspect="flow"` | With `shape="flat"`: the flow field. Colour is direction, strength is distance. |
+| `inspect="agreement"` | With `shape="flat"`: green where the two frames match after warping, red where they do not. |
+| `depth="auto"` | Experimental. See below. |
 
-## Learn more
+The preview pages take the same names as URL parameters, for example `/preview.html?shape=flat&inspect=flow`.
 
-- [Build your own skin](https://videojs.org/docs/framework/html/guides/build-your-own-skin)
-- [Customize skins](https://videojs.org/docs/framework/html/guides/customize-skins)
-- [UI components](https://videojs.org/docs/framework/html/guides/ui-components)
+Captions are drawn by the browser. The skin sets their typeface, colour and background through three custom
+properties on the player: `--scry-caption-font`, `--scry-caption-color` and `--scry-caption-plate`.
+
+If a device struggles, lower `ScryVisionElement.maxPixels`, the cap on how many pixels the stone is drawn with.
+
+### Depth (experimental)
+
+`depth="auto"` runs [Depth Anything V2 Small](https://huggingface.co/onnx-community/depth-anything-v2-small) over
+the storyboard in a worker and gives the picture inside the stone some parallax. It needs WebGPU
+(`depth="wasm"` forces the slower WebAssembly backend) and is the only feature that downloads a model: about 19 MB
+on WebGPU, 27 MB on WebAssembly, from the Hugging Face hub, plus the ONNX runtime from jsDelivr. It is off by
+default, and if anything fails the picture simply stays flat.
+
+## Accessibility and fallbacks
+
+- Every control is a Video.js component, so roles, labels, keyboard handling and translations are the library's.
+  The time slider stays in the document as the real control; the curved bar is a picture of it.
+- Tab order follows visual order, and every focusable part has a visible focus ring.
+- With reduced motion turned on, without WebGL2, or after a lost graphics context, the stone never appears. Seeks
+  cut, the timeline preview is a still thumbnail and buffering shows a spinner.
+- Without a storyboard the stone still wraps, holding the frame it started from under smoke until the new one
+  arrives.
+- Forced colours and increased contrast replace glass and gradients with solid surfaces and borders.
+
+## Project layout
+
+```
+src/
+  video/
+    skin.html, skin.ts      the markup, and the elements and icons it registers
+    skin.css                structural styles
+    scry.css                the shapes
+    scry-arc.css            the curved bar
+    scry-material.css       what it is all made of
+    scry-vision.ts          the element that conducts the stone
+    scry-arc.ts             the curved bar
+    vision/                 the parts of the stone's behaviour that stand alone:
+                            the wrap's state machine, the spring, layout,
+                            drag recognition, exact frames, depth, captions
+    icons/, fonts/
+  liquid/                   the WebGL engine, with no dependency on Video.js:
+                            engine, shaders, storyboard parsing, depth worker
+  styles/                   theme tokens
+apps/preview/               the home page, the workbench and the bare preview
+design/                     design notes and screenshots
+```
+
+`design/spec.md` describes the design decisions in detail.
+
+## Development
+
+```sh
+npm run typecheck   # TypeScript
+npm test            # unit tests for the state machine, spring, layout and parsing
+npm run build       # production build into dist/
+npm run deploy      # deploy dist/ to Vercel, Netlify or Cloudflare Pages
+```
+
+`/lab.html` on the dev server renders contact sheets of the interpolation and the wrap, for judging the shaders by
+eye.
+
+The project was scaffolded with `videojs skin create` from the Scaffold skin; `skin.json` records the Video.js
+version it was made with.
+
+## Credits
+
+- Design and code: [Ahmed Abuzuraiq](https://abuzreq.com/).
+- Built on [Video.js v10](https://videojs.org). The demo video is NASA's *Cosmic Dawn* trailer, streamed by
+  [Mux](https://www.mux.com).
+- The display typeface is [Cinzel](https://github.com/NDISCOVER/Cinzel) by Natanael Gama, bundled in
+  `src/video/fonts/` under the SIL Open Font License 1.1 (`src/video/fonts/OFL.txt`).
+- Everything else in the skin, including the icons, is original work.
+
+## Licence
+
+[Apache License 2.0](LICENSE).

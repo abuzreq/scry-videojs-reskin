@@ -4,74 +4,128 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#090706" />
     <meta
       name="description"
-      content="Scry is a seeing-stone skin for Video.js v10. Travel through the video and the picture itself becomes the stone."
+      content="Scry is a Video.js v10 skin. Drag the timeline and the video rolls up into a seeing-stone that shows the footage moving as you scrub."
     />
-    <title>Scry — a seeing-stone skin for Video.js</title>
+    <meta name="author" content="Ahmed Abuzuraiq" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>Scry: a seeing-stone skin for Video.js</title>
   </head>
   <body>
+    <!-- Ornament: lines of an invented script drifting down the margins. Filled in by src/showcase/main.ts. -->
+    <div class="edge edge-left" aria-hidden="true"><div class="edge-run"></div></div>
+    <div class="edge edge-right" aria-hidden="true"><div class="edge-run"></div></div>
+
     <main class="page">
       <header class="masthead">
         <h1 class="wordmark">Scry</h1>
-        <p class="lede">A seeing-stone skin for Video.js&nbsp;v10.</p>
+        <p class="lede">A Video.js skin that turns the video into a seeing-stone.</p>
       </header>
 
       <div id="player" class="stage"></div>
 
-      <div class="choices" aria-label="Look behind the glass">
-        <div class="choice" role="group" aria-label="What the orb is made of" data-option="stone">
-          <button type="button" data-value="obsidian">Seeing-stone</button>
-          <button type="button" data-value="glass">Clear glass</button>
-        </div>
-        <div class="choice" role="group" aria-label="Shape of the picture while travelling" data-option="shape">
-          <button type="button" data-value="orb">Wrap into an orb</button>
-          <button type="button" data-value="flat">Stay a rectangle</button>
-        </div>
-        <div class="choice" role="group" aria-label="Inspect the morph" data-option="inspect">
-          <button type="button" data-value="off">Picture</button>
-          <button type="button" data-value="compare">Crossfade | morph</button>
-          <button type="button" data-value="flow">Flow field</button>
-          <button type="button" data-value="agreement">Agreement</button>
-        </div>
-      </div>
+      <p class="hint">Drag the timeline, or drag left and right on the picture.</p>
 
-      <p class="hint">
-        Drag the timeline, or drag sideways on the picture, and the video curls into a seeing-stone. Hold still and
-        the vision comes into focus. Let go and step into it.
-      </p>
+      <div class="band" aria-hidden="true"></div>
 
-      <section class="notes" aria-label="About the skin">
-        <article>
-          <h2>Time travel</h2>
-          <p>
-            Scrub or jump and the picture curls into a stone of dark glass, with the timeline curled around its rim.
-            Inside it the video flows from one moment to the next instead of cutting.
-          </p>
-        </article>
-        <article>
-          <h2>On your device</h2>
-          <p>
-            Optical flow, the morph and the lens are fragment shaders running in your browser, with no model to
-            download. Resting on a moment fetches that one frame from the video's own host.
-          </p>
-        </article>
-        <article>
-          <h2>For everyone</h2>
-          <p>
-            Every control works from the keyboard and on touch. With reduced motion on, nothing wraps: seeking is
-            instant and the preview is a still frame.
-          </p>
-        </article>
+      <section class="section" aria-labelledby="try">
+        <h2 id="try">Things to try</h2>
+        <dl class="moves">
+          <div>
+            <dt>Drag</dt>
+            <dd>
+              Scrub the timeline, or drag anywhere on the picture. The video rolls up into the stone and plays through
+              it as you move, with the timeline bent around the rim. Let go and it opens on the new frame.
+            </dd>
+          </div>
+          <div>
+            <dt>Hover</dt>
+            <dd>
+              Rest the pointer on the timeline and a small stone shows that moment. Hold still for a second and it
+              sharpens. The video keeps playing.
+            </dd>
+          </div>
+          <div>
+            <dt>Skip</dt>
+            <dd>
+              Use the arrow keys, the number keys, or double-click either side of the picture. Long skips pass
+              through the stone; short ones just cut.
+            </dd>
+          </div>
+          <div>
+            <dt>Wait</dt>
+            <dd>
+              When the video stalls, the stone fills with smoke. When it ends, the stone holds the opening frame.
+              Press it to start again.
+            </dd>
+          </div>
+        </dl>
       </section>
 
-      <footer class="links">
-        <a href="./workbench.html">Open the workbench</a>
-        <a href="https://github.com/abuzreq/videojs-reskin">Source on GitHub</a>
-        <a href="https://videojs.org">Video.js</a>
+      <section class="section" aria-labelledby="how">
+        <h2 id="how">How it works</h2>
+        <div class="prose">
+          <p>
+            Scrubbing a video normally shows you a strip of thumbnails. Those thumbnails come from a storyboard: one
+            image, published alongside the video, with a small frame every few seconds.
+          </p>
+          <p>
+            Scry takes the same image and works out how the picture moves between each frame and the next. It then
+            uses that motion to push one frame into the other, so a few dozen stills look like footage. Where the
+            video cuts to a different shot there is no motion to follow, and the frames dissolve instead.
+          </p>
+          <p>
+            All of this is shader code running in your browser. Nothing is uploaded, and there is no model to
+            download.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="player-notes">
+        <h2 id="player-notes">Still a normal player</h2>
+        <div class="prose">
+          <p>
+            Under the stone are the standard Video.js controls: play, seek, volume, captions, speed, quality,
+            picture-in-picture and fullscreen. They all work from the keyboard and on touch, and the timeline is
+            still a labelled slider for screen readers.
+          </p>
+          <p>
+            If you have reduced motion turned on, or your browser has no WebGL2, the stone never appears. Seeking
+            cuts as usual and the preview is a plain thumbnail.
+          </p>
+        </div>
+      </section>
+
+      <div class="band" aria-hidden="true"></div>
+
+      <footer class="colophon">
+        <p>
+          Made by <a href="https://abuzreq.com/" rel="author">Ahmed Abuzuraiq</a> for the
+          <a href="https://contra.com/community/topic/videojsskinschallenge/guidelines">Video.js Skins Design Challenge</a>
+          on Contra, November 2026.
+        </p>
+        <p>
+          The <a href="https://github.com/abuzreq/scry-videojs-reskin">source is on GitHub</a> under the Apache 2.0
+          licence. Built on <a href="https://videojs.org">Video.js v10</a>. The film is NASA’s
+          <cite>Cosmic Dawn</cite> trailer, streamed by Mux. Titles are set in Cinzel.
+        </p>
       </footer>
-      <p class="credit">Made by <a href="https://abuzreq.com/" rel="author">Ahmed Abuzuraiq</a></p>
     </main>
+
+    <!-- The same two links as the footer, set along the margins on wide screens. -->
+    <a class="margin-credit margin-credit-left" href="https://abuzreq.com/" rel="author" aria-hidden="true" tabindex="-1"
+      >Made by Ahmed Abuzuraiq</a
+    >
+    <a
+      class="margin-credit margin-credit-right"
+      href="https://github.com/abuzreq/scry-videojs-reskin"
+      aria-hidden="true"
+      tabindex="-1"
+      >Source on GitHub</a
+    >
+
     <script type="module" src="/src/showcase/main.ts"></script>
   </body>
 </html>

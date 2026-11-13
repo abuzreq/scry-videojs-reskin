@@ -20,8 +20,8 @@ export function createPlayer(): HTMLElement {
     `<mux-video src="${SRC}" playsinline crossorigin><track kind="chapters" label="English" srclang="en" src="${CHAPTERS}" default></mux-video>`
   );
 
-  // Options set from the page URL: ?stone=glass makes the orb clear crystal, ?shape=flat keeps the picture a rectangle (with ?inspect=flow|compare|agreement to study the morph), and
-  // ?depth=auto (WebGPU) or ?depth=wasm switches on the depth tier.
+  // The skin's options can be set from the page URL: ?stone=glass, ?shape=flat (with ?inspect=flow, compare or
+  // agreement) and ?depth=auto or wasm. The README describes them.
   const params = new URLSearchParams(location.search);
   const vision = player.querySelector('scry-vision');
 
