@@ -34,6 +34,10 @@ export interface OrbView {
   reveal: number;
   /** 0 the picture; 1 the flow field, 2 crossfade against morph, 3 agreement. For studying the morph. */
   inspect: number;
+  /** 0 clear glass, 1 the dark seeing-stone. */
+  stone: number;
+  /** 0..1: how hard time is being driven; stokes the fire in the dark stone. */
+  heat: number;
   /** 0..1: how much of the detail picture (see `setDetail`) to show in place of the storyboard. */
   detail: number;
   /** Sideways move of the eye, in picture units; only shows where depth is known. */
@@ -380,6 +384,8 @@ export class LiquidEngine {
     gl.uniform1f(uniforms.uMist!, view.mist);
     gl.uniform1f(uniforms.uClock!, view.clock);
     gl.uniform1f(uniforms.uInspect!, view.inspect);
+    gl.uniform1f(uniforms.uStone!, view.stone);
+    gl.uniform1f(uniforms.uHeat!, view.heat);
     gl.uniform1f(uniforms.uPresence!, view.presence);
     gl.uniform1f(uniforms.uReveal!, view.reveal);
     gl.uniform1f(uniforms.uPixelRatio!, view.pixelRatio);

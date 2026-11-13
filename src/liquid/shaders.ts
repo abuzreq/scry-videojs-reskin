@@ -227,6 +227,7 @@ void main() {
  * - uWide chooses the lens: 0 is a tight look at the middle of the picture (the small orb on the timeline), 1 takes
  *   in nearly the whole frame, squeezed toward the rim (the big orb).
  * - uMist fills the glass with slow fog, for waiting.
+ * - uStone chooses the material: 0 clear glass, 1 a dark seeing-stone with a fire in it that uHeat stokes.
  * - uReveal hands over to whatever is underneath the canvas.
  *
  * Positions are canvas pixels with y down.
@@ -248,7 +249,12 @@ uniform vec2 uTilt;
 uniform sampler2D uDetail;
 uniform float uDetailMix;
 uniform float uInspect;
+uniform float uStone;
+uniform float uHeat;
 out vec4 outColor;
+
+/** The colour of the fire in the dark stone. */
+const vec3 EMBER = vec3(1.0, 0.42, 0.1);
 
 vec3 hueWheel(float h) {
   return clamp(abs(fract(h + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0, 0.0, 1.0);
@@ -314,6 +320,17 @@ float fog(vec2 p) {
   return sum / 0.9375;
 }
 
+/** Sparks rising through the smoke in the dark stone: a few round points, each on its own flicker. */
+float sparks(vec2 p) {
+  vec2 q = p * 8.0 + vec2(uClock * 0.12, uClock * 0.85);
+  vec2 cell = floor(q);
+  float seed = hash(cell);
+  if (seed < 0.78) return 0.0;
+  vec2 at = (vec2(hash(cell + 3.1), hash(cell + 7.7)) - 0.5) * 0.6;
+  float flicker = 0.55 + 0.45 * sin(uClock * 5.0 + seed * 40.0);
+  return smoothstep(0.085, 0.0, length(fract(q) - 0.5 - at)) * flicker;
+}
+
 void main() {
   vec2 pixel = vec2(gl_FragCoord.x, uResolution.y - gl_FragCoord.y);
   float lens = uWrap * uWrap * (3.0 - 2.0 * uWrap);
@@ -339,7 +356,9 @@ void main() {
     uMix
   );
   float halo = exp(-max(dist, 0.0) / (uOrb.z * 0.55)) * lens;
-  vec3 stage = vec3(0.012, 0.014, 0.02) + ambient * halo * 0.2;
+  // Clear glass throws the picture's own colour onto the stage; the dark stone throws firelight, more as it works.
+  vec3 thrown = mix(ambient, mix(ambient, EMBER, 0.75) * (0.55 + 0.9 * uHeat), uStone);
+  vec3 stage = mix(vec3(0.012, 0.014, 0.02), vec3(0.016, 0.01, 0.007), uStone) + thrown * halo * 0.2;
 
   // Without a stage the orb still needs to sit on the picture behind it: a soft shadow, falling slightly downward.
   vec2 ps = (pixel - uOrb.xy - vec2(0.0, uOrb.z * 0.1)) / uOrb.z;
@@ -379,13 +398,11 @@ void main() {
 
   if (uMist > 0.001) {
     float f = fog(onSphere * rr);
-    vec3 mist = mix(vec3(0.62, 0.68, 0.8), vec3(0.95, 0.97, 1.0), f);
+    // Fog in clear glass; smoke, with sparks rising through it, in the dark stone.
+    vec3 mist = mix(mix(vec3(0.62, 0.68, 0.8), vec3(0.95, 0.97, 1.0), f), mix(vec3(0.03, 0.024, 0.02), vec3(0.4, 0.29, 0.2), f), uStone);
     col = mix(col, mist * (0.5 + 0.5 * f), uMist * smoothstep(0.15, 0.85, f + 0.25) * 0.92);
+    col += EMBER * sparks(onSphere) * (0.35 + 0.65 * f) * uMist * uStone * 1.8;
   }
-
-  // Glass: darker where it is thick toward the rim, a bright edge where light grazes it, a window reflection.
-  col *= mix(1.0, 0.58, smoothstep(0.5, 1.0, rr) * lens);
-  col += vec3(0.92, 0.96, 1.0) * pow(1.0 - z, 4.0) * 0.5 * lens;
 
   vec2 h = (onSphere - vec2(-0.36, -0.5)) / vec2(0.46, 0.24);
   float sheen = exp(-dot(h, h) * 1.6) * 0.34;
@@ -393,7 +410,23 @@ void main() {
   float glint = exp(-dot(g, g) * 1.4) * 0.5;
   vec2 k = (onSphere - vec2(0.34, 0.66)) / vec2(0.36, 0.16);
   float bounce = exp(-dot(k, k) * 1.8) * 0.16;
-  col += vec3(1.0) * (sheen + glint + bounce) * lens;
+
+  // Clear glass: darker where it is thick toward the rim, a bright edge where light grazes it, a window reflection.
+  vec3 clear = col * mix(1.0, 0.58, smoothstep(0.5, 1.0, rr) * lens);
+  clear += vec3(0.92, 0.96, 1.0) * pow(1.0 - z, 4.0) * 0.5 * lens;
+  clear += vec3(1.0) * (sheen + glint + bounce) * lens;
+
+  // The dark stone: the picture surfaces in the middle and sinks into black toward the rim. A fire low inside it
+  // breathes, and brightens along the rim, the harder time is driven. What it reflects is dim and warm.
+  float sink = smoothstep(0.32, 1.0, rr);
+  vec3 dark = col * mix(1.0, 0.13, sink * sink * lens) * mix(vec3(1.0), vec3(1.05, 0.98, 0.9), lens);
+  float breath = 0.78 + 0.22 * noise(vec2(uClock * 1.6, 3.1));
+  vec2 fp = (onSphere - vec2(0.0, 0.62)) / vec2(0.8, 0.46);
+  dark += EMBER * exp(-dot(fp, fp) * 1.3) * (0.1 + 0.34 * uHeat) * breath * lens;
+  dark += EMBER * pow(1.0 - z, 3.0) * (0.3 + 0.7 * uHeat) * breath * lens;
+  dark += vec3(1.0, 0.9, 0.76) * (sheen * 0.3 + glint * 0.55 + bounce * 0.25) * lens;
+
+  col = mix(clear, dark, uStone);
 
   // Premultiplied, over the stage or shadow that shows through the antialiased edge.
   float alpha = smoothstep(aa, -aa, dist) * keep;

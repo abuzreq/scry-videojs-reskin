@@ -116,13 +116,14 @@ export class ArcBar {
     const line = svg('g', { mask: `url(#${id}-chapters)` });
     const path = (className: string) => svg('path', { class: className, pathLength: String(UNITS), fill: 'none' });
 
-    for (const [offset, color] of [
-      ['0%', '#ffffff'],
-      ['45%', '#eef2ff'],
-      ['85%', '#bfcdea'],
-      ['100%', '#ffffff'],
+    // The bead's colours belong to the skin's material, so the stops are classes the stylesheet fills in.
+    for (const [offset, name] of [
+      ['0%', 'glint'],
+      ['45%', 'body'],
+      ['85%', 'shade'],
+      ['100%', 'edge'],
     ]) {
-      gradient.append(svg('stop', { offset: offset!, 'stop-color': color! }));
+      gradient.append(svg('stop', { offset: offset!, class: `scry-arc-bead-${name}` }));
     }
 
     this.#chapterMask = path('scry-arc-mask');

@@ -150,6 +150,8 @@ async function main() {
           clock: 3 + f * 6,
           reveal: 0,
           inspect: 0,
+          stone: Number(params.get('stone') ?? 1),
+          heat: mode === 'wrap' ? 0.6 : 0.2,
           detail: 0,
           parallax: [0, 0],
           dolly: 0,

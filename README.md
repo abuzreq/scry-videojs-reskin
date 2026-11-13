@@ -1,14 +1,18 @@
 # Scry
 
-A crystal-ball skin for [Video.js v10](https://videojs.org). The video is a rectangle until you travel through time:
-drag the timeline, drag sideways on the picture, or jump with the keys, and the picture curls up into a glass orb in
-which the video flows from one moment to the next. The timeline curls onto the orb's rim. Arrive, and it uncurls onto
+A seeing-stone skin for [Video.js v10](https://videojs.org). The video is a rectangle until you travel through time:
+drag the timeline, drag sideways on the picture, or jump with the keys, and the picture curls up into an orb of dark
+glass in which the video flows from one moment to the next. The timeline curls onto the orb's rim. Arrive, and it uncurls onto
 the new frame. Buffering shows as fog in a small orb; the end of the video as an orb holding its opening frame.
 
 The effect runs on the viewer's device in WebGL2 fragment shaders: optical flow between storyboard tiles, the morph,
 the wrap and the lens. There is no model to download and no extension to enable. With a Mux source, resting on a moment
 also fetches that exact frame from Mux so the orb comes into focus. Without WebGL2, or with reduced motion turned on,
 nothing wraps: seeks cut and the timeline preview shows a still thumbnail.
+
+The orb is a dark seeing-stone by default: the picture surfaces out of black glass, a fire inside it brightens the
+harder time is driven, and the rest of the skin follows in warm ink, old gold and serif capitals.
+`<scry-vision stone="glass">` (or `?stone=glass`) makes it clear crystal with cool white chrome instead.
 
 Merely resting the pointer on the timeline peeks instead: a small orb at the pointer shows that moment and the
 picture is left alone.

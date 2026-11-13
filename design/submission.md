@@ -2,24 +2,28 @@
 
 ## Description (for the Contra form)
 
-Scry turns the video itself into a crystal ball. It is an ordinary rectangle until you travel through time: drag the
-timeline, drag sideways on the picture, or jump with the keys, and the picture curls up into a glass orb. Inside it
-the video flows from one moment to the next instead of cutting, and the timeline curls with it onto the orb's rim,
-carrying the chapters, the times and the knob. Arrive, and the orb uncurls onto the new frame. Resting the pointer on
-the timeline only peeks: a small orb shows that moment and leaves the picture alone. The same glass appears wherever
-the player waits or rests: fog in a small orb while buffering, and the opening frame held in an orb at the end.
+Scry turns the video itself into a seeing-stone. It is an ordinary rectangle until you travel through time: drag the
+timeline, drag sideways on the picture, or jump with the keys, and the picture curls up into an orb of black glass.
+Inside it the video flows from one moment to the next instead of cutting, a fire in the stone brightens the harder
+you drive it, and the timeline curls with it onto the orb's rim, carrying the chapters, the times and the knob.
+Arrive, and the orb uncurls onto the new frame. Resting the pointer on the timeline only peeks: a small stone shows
+that moment and leaves the picture alone. The same stone appears wherever the player waits or rests: smoke and
+sparks while buffering, and the opening frame held in it at the end.
 
-Everything else stays quiet so the orb is the only spectacle: a hairline timeline with a glass bead, one row of
-thin-stroke icons drawn for the skin, smoke-glass menus, and an italic serif reserved for chapter titles.
+The rest of the skin takes its cue from the stone and otherwise stays quiet: warm ink, a hairline timeline in old
+gold with a dark, ember-edged bead, thin-stroke icons drawn for the skin, smoke-dark menus, and serif small capitals
+for names. A clear-glass variant is one attribute away.
 
 The effect runs in the browser in WebGL2 fragment shaders (optical flow between storyboard frames, the morph, the
-wrap and the lens) with no model to download. It is decoration over working controls: every control is a Video.js
-component, the time slider keeps its role, label and keys, and with reduced motion or without WebGL nothing wraps.
+wrap, the lens and the fire) with no model to download. It is decoration over working controls: every control is a
+Video.js component, the time slider keeps its role, label and keys, and with reduced motion or without WebGL nothing
+wraps.
 
 ## Visuals
 
-- `design/hero.png` — the picture wrapped into the orb, with the curved timeline.
-- `design/peek.png` — resting on the timeline: the small orb.
+- `design/hero.png` — the picture wrapped into the stone, with the curved timeline.
+- `design/hero-driven.png` — the same while time is being driven: the fire is up.
+- `design/peek.png` — resting on the timeline: the small stone.
 
 ## Before submitting
 

@@ -82,6 +82,8 @@ const toward = (value: number, goal: number, rate: number, dt: number) => value 
  * the opening frame held in an orb when the video has ended.
  *
  * Attributes:
+ * - `stone="glass"`: clear crystal instead of the default dark seeing-stone, in which the picture surfaces out of
+ *   black glass and a fire inside brightens the harder time is driven.
  * - `shape="flat"`: nothing wraps. Time travel plays the same flowing picture across the plain rectangle, with no
  *   lens, glass or stage, so the morph itself can be seen. `inspect="flow"`, `"compare"` or `"agreement"` then shows
  *   the flow field, a plain crossfade beside the morph, or where the two frames agree.
@@ -135,6 +137,7 @@ export class ScryVisionElement extends UIElement {
   #wrap = 0;
   #reveal = 0;
   #mist = 0;
+  #heat = 0;
   #detail = 0;
   #shown = 0;
   #velocity = 0;
@@ -193,6 +196,13 @@ export class ScryVisionElement extends UIElement {
     this.#centre = container?.querySelector<HTMLElement>('.video-controls-center-play') ?? null;
 
     if (!container || !slider) return;
+
+    // The material themes the whole skin, not only the orb, so the container carries it from the first paint.
+    const material = new MutationObserver(() => container.setAttribute('data-scry-stone', this.#stone));
+
+    material.observe(this, { attributes: true, attributeFilter: ['stone'] });
+    signal.addEventListener('abort', () => material.disconnect());
+    container.setAttribute('data-scry-stone', this.#stone);
 
     this.#reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     this.#reducedMotion.addEventListener('change', () => this.#syncMode(), { signal });
@@ -272,7 +282,7 @@ export class ScryVisionElement extends UIElement {
     this.#figure = 'none';
     this.#closed = false;
 
-    for (const name of ['gl', 'wrapped', 'flat', 'mist', 'ended', 'quiet', 'depth', 'hover']) {
+    for (const name of ['gl', 'wrapped', 'flat', 'mist', 'ended', 'quiet', 'depth', 'hover', 'stone']) {
       this.#container?.removeAttribute(`data-scry-${name}`);
     }
   }
@@ -361,7 +371,9 @@ export class ScryVisionElement extends UIElement {
 
     try {
       this.#engine = new LiquidEngine(canvas);
-    } catch {
+    } catch (error) {
+      // The skin carries on without the orb; say why, once, for whoever is integrating it.
+      console.warn('Scry: the orb is off because WebGL2 could not start.', error);
       this.#engineFailed = true;
 
       return null;
@@ -396,6 +408,11 @@ export class ScryVisionElement extends UIElement {
   /** `shape="flat"`: the picture stays a rectangle. */
   get #flat(): boolean {
     return this.getAttribute('shape') === 'flat';
+  }
+
+  /** The orb's material: the dark seeing-stone unless `stone="glass"` asks for clear crystal. */
+  get #stone(): 'obsidian' | 'glass' {
+    return this.getAttribute('stone') === 'glass' ? 'glass' : 'obsidian';
   }
 
   get #inspect(): number {
@@ -878,6 +895,8 @@ export class ScryVisionElement extends UIElement {
 
     this.#detail = toward(this.#detail, focused ? 1 : 0, focused ? 10 : 22, dt);
     this.#mist = toward(this.#mist, fog, 6, dt);
+    // The fire answers to how fast the picture is travelling, and smoulders while the orb is held closed.
+    this.#heat = toward(this.#heat, Math.min(1, Math.abs(speed) * 0.22 + (this.#closed && !this.#unwrapping ? 0.22 : 0)), 5, dt);
 
     if (this.dataset.phase !== this.#figure) this.dataset.phase = this.#figure;
     if (engine.pending > 0) engine.solve(2, this.#shown);
@@ -903,6 +922,8 @@ export class ScryVisionElement extends UIElement {
       clock: this.#clock,
       reveal: isBig ? this.#reveal : 0,
       inspect: this.#inspect,
+      stone: this.#stone === 'obsidian' ? 1 : 0,
+      heat: this.#heat,
       detail: this.#detail,
       // Fast travel softens the picture a little and leans it into the direction of travel.
       smear: Math.min(1.4, Math.abs(speed) * 0.09),

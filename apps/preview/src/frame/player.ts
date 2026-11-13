@@ -20,12 +20,12 @@ export function createPlayer(): HTMLElement {
     `<mux-video src="${SRC}" playsinline crossorigin><track kind="chapters" label="English" srclang="en" src="${CHAPTERS}" default></mux-video>`
   );
 
-  // Options set from the page URL: ?shape=flat keeps the picture a rectangle (with ?inspect=flow|compare|agreement to study the morph), and
+  // Options set from the page URL: ?stone=glass makes the orb clear crystal, ?shape=flat keeps the picture a rectangle (with ?inspect=flow|compare|agreement to study the morph), and
   // ?depth=auto (WebGPU) or ?depth=wasm switches on the depth tier.
   const params = new URLSearchParams(location.search);
   const vision = player.querySelector('scry-vision');
 
-  for (const name of ['shape', 'inspect', 'depth']) {
+  for (const name of ['stone', 'shape', 'inspect', 'depth']) {
     const value = params.get(name);
 
     if (value) vision?.setAttribute(name, value);

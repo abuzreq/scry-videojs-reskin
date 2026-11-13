@@ -1,6 +1,22 @@
 # Scry — design spec
 
-A crystal-ball skin for Video.js v10. Travel through the video and the picture itself becomes the crystal ball.
+A seeing-stone skin for Video.js v10. Travel through the video and the picture itself becomes the stone.
+
+## Material
+
+Two materials, one skin. The default is a **dark seeing-stone**; `stone="glass"` is the clear crystal it grew from.
+
+| | Seeing-stone (default) | Clear glass |
+|---|---|---|
+| Orb | Black glass. The picture surfaces in the middle and sinks into dark toward the rim. A fire low inside breathes, and brightens along the rim the harder time is driven. | Clear, darker toward the rim, a cool grazing edge light and a window reflection. |
+| Stage | Near black, lit like firelight. | Near black, lit by the picture's own colour. |
+| Waiting | Smoke, with sparks rising through it. | White fog. |
+| Ink | Warm white `#f6eedf`; old gold `#e3c078` for what is played. | White; white for what is played. |
+| Bead and knob | A dark stone with an ember edge. | A pale glass bead. |
+| Names (title, chapters) | Serif small capitals, letterspaced; chapter title under the orb in gold. | Sans title; chapters in italic serif. |
+| Play control at rest | The stone asleep: black, a little fire low inside. | Smoke glass. |
+
+Both keep numbers in plain tabular sans, so times read at a glance, and both honour `--media-accent-color`.
 
 ## Idea
 
