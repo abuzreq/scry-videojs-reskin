@@ -157,6 +157,8 @@ export class ScryVisionElement extends UIElement {
   #frameReady = false;
   #frameRequested = false;
   #barPressed = false;
+  #pressClock = 0;
+  #pressFrom = 0;
   #arcScrubbing = false;
   #arcResume = false;
   #drag: PictureDrag | null = null;
@@ -181,6 +183,8 @@ export class ScryVisionElement extends UIElement {
   #depth: DepthEstimator | null = null;
   #depthRun = 0;
   #deltaText = '';
+  #captionSheet: CSSStyleSheet | null = null;
+  #captionRoot: Document | ShadowRoot | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -213,6 +217,8 @@ export class ScryVisionElement extends UIElement {
       container.setAttribute('data-scry-stone', this.#stone);
 
       for (const icon of icons) if (icon.getAttribute('family') !== family) icon.setAttribute('family', family);
+
+      this.#dressCaptions();
     };
     const material = new MutationObserver(dress);
 
@@ -237,6 +243,8 @@ export class ScryVisionElement extends UIElement {
         if (event.button !== 0) return;
 
         this.#barPressed = true;
+        this.#pressClock = this.#clock;
+        this.#pressFrom = this.#time.value?.currentTime ?? 0;
         this.#quiet = false;
         this.#wake();
       },
@@ -249,7 +257,13 @@ export class ScryVisionElement extends UIElement {
         () => {
           if (!this.#barPressed) return;
 
+          // A press that never became a scrub was a click: one clean jump, or for a small step no orb at all.
+          const clicked = type === 'pointerup' && !this.#closed;
+
           this.#barPressed = false;
+
+          if (clicked) this.#clickJump();
+
           this.#release();
         },
         { signal }
@@ -294,6 +308,14 @@ export class ScryVisionElement extends UIElement {
     this.#canvas = null;
     this.#arc?.element.remove();
     this.#arc = null;
+
+    if (this.#captionRoot && this.#captionSheet) {
+      this.#captionRoot.adoptedStyleSheets = this.#captionRoot.adoptedStyleSheets.filter(
+        (sheet) => sheet !== this.#captionSheet
+      );
+    }
+
+    this.#captionRoot = null;
     this.#storyboardKey = '';
     this.#figure = 'none';
     this.#closed = false;
@@ -306,6 +328,8 @@ export class ScryVisionElement extends UIElement {
   update(changed: PropertyValues): void {
     super.update(changed);
     this.#loadStoryboard();
+
+    if (!this.#captionRoot) this.#dressCaptions();
 
     const time = this.#time.value;
 
@@ -476,6 +500,41 @@ export class ScryVisionElement extends UIElement {
     this.#frame = requestAnimationFrame(this.#tick);
   }
 
+  /**
+   * The browser draws captions itself, and only takes styling from a `::cue` rule in the same tree as the video.
+   * Media components such as <mux-video> keep their video in a shadow root, out of reach of the skin's stylesheet,
+   * so the rule is handed to whichever tree the video lives in, with the skin's caption properties written into it.
+   */
+  #dressCaptions(): void {
+    const video = this.#video();
+    const container = this.#container;
+
+    if (!video || !container || typeof CSSStyleSheet === 'undefined' || !('replaceSync' in CSSStyleSheet.prototype)) {
+      return;
+    }
+
+    const style = getComputedStyle(container);
+    const read = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;
+    const root = video.getRootNode() as Document | ShadowRoot;
+    const selector = root instanceof ShadowRoot ? 'video::cue' : '.media-skin[data-scry-stone] video::cue';
+
+    this.#captionSheet ??= new CSSStyleSheet();
+    this.#captionSheet.replaceSync(
+      `${selector} { font-family: ${read('--scry-caption-font', 'inherit')}; color: ${read('--scry-caption-color', 'white')}; background-color: ${read('--scry-caption-plate', 'rgb(0 0 0 / 0.7)')}; }`
+    );
+
+    if (this.#captionRoot === root) return;
+
+    if (this.#captionRoot) {
+      this.#captionRoot.adoptedStyleSheets = this.#captionRoot.adoptedStyleSheets.filter(
+        (sheet) => sheet !== this.#captionSheet
+      );
+    }
+
+    root.adoptedStyleSheets = [...root.adoptedStyleSheets, this.#captionSheet];
+    this.#captionRoot = root;
+  }
+
   // ---------------------------------------------------------------- travelling
 
   /** A pointer is on the timeline, the arc or the picture, moving time by hand. */
@@ -526,6 +585,18 @@ export class ScryVisionElement extends UIElement {
   #jump(from: number): void {
     this.#jumpUntil = this.#clock + JUMP_LINGER;
     this.#close('jump', from);
+  }
+
+  /** The timeline was clicked rather than dragged: travel there as a jump, if it is far enough to be one. */
+  #clickJump(): void {
+    const slider = this.#slider;
+    const time = this.#time.value;
+
+    if (!this.#live || !slider || !time || !Number.isFinite(time.duration)) return;
+
+    const to = ((Number.parseFloat(slider.style.getPropertyValue('--media-slider-pointer')) || 0) / 100) * time.duration;
+
+    if (Math.abs(to - this.#pressFrom) >= JUMP_MIN_SECONDS) this.#jump(this.#pressFrom);
   }
 
   /** A hand let go of the timeline, the arc or the picture. */
@@ -724,7 +795,8 @@ export class ScryVisionElement extends UIElement {
 
     const host = this.getBoundingClientRect();
     const big = this.#bigShape(host);
-    const onBar = this.#barPressed || dragging;
+    // Pressing is not yet scrubbing: the orb waits for the pointer to move, or for the press to be held.
+    const onBar = dragging || (this.#barPressed && this.#clock - this.#pressClock > 0.15);
     const hoverable = this.#pointer?.mouse !== false && !this.#quiet;
 
     // Where hovering travels, resting on the timeline (or, once closed, anywhere on the picture's orb) keeps it closed.
@@ -769,10 +841,15 @@ export class ScryVisionElement extends UIElement {
         this.#opening = false;
         this.#unwrapping = false;
       } else if (!this.#opening) {
-        this.#opening = true;
-        this.#openAge = 0;
-        this.#frameReady = false;
-        this.#frameRequested = false;
+        if (this.#wrap < 1) {
+          // Let go before the orb had closed: finish the gesture, briskly, rather than leave it half curled.
+          this.#brisk = true;
+        } else {
+          this.#opening = true;
+          this.#openAge = 0;
+          this.#frameReady = false;
+          this.#frameRequested = false;
+        }
       }
     }
 
@@ -962,7 +1039,9 @@ export class ScryVisionElement extends UIElement {
 
     this.#drawArc(host, big, pointerTime, dragging);
 
-    if (visible || held || engine.pending > 0 || playback?.waiting) this.#frame = requestAnimationFrame(this.#tick);
+    if (visible || held || this.#barPressed || engine.pending > 0 || playback?.waiting) {
+      this.#frame = requestAnimationFrame(this.#tick);
+    }
   }
 
   /** The curved bar exists while the big orb does; at wrap 0 it lies exactly on the straight one. */

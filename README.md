@@ -19,6 +19,13 @@ four engraved corner marks around the picture.
 Merely resting the pointer on the timeline peeks instead: a small orb at the pointer shows that moment and the
 picture is left alone.
 
+## Captions
+
+The browser draws captions, and the skin sets their face, ink and plate through three properties on the player:
+`--scry-caption-font`, `--scry-caption-color` and `--scry-caption-plate`. The seeing-stone uses a book serif in warm
+white; clear glass uses the player's sans. Because media components such as `<mux-video>` keep their video in a
+shadow root, the skin hands the `::cue` rule into that root itself.
+
 ## Third-party material
 
 The display face is [Cinzel](https://github.com/NDISCOVER/Cinzel) (one weight, Latin), bundled in

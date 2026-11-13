@@ -19,6 +19,7 @@ Two materials, one skin. The default is a **dark seeing-stone**; `stone="glass"`
 | Volume | A flame: deep red at the foot, gold at the top, with an ember for a thumb. | A white line with a glass bead. |
 | Frame | Four engraved corner marks that come and go with the controls. | None. |
 | Between the times | A cut diamond. | A slash. |
+| Captions | A book serif in warm white on a dark plate. | Sans in white on a dark plate. |
 | Play control at rest | The stone asleep: black, a little fire low inside. | Smoke glass. |
 
 Both keep numbers in plain tabular sans, so times read at a glance, and both honour `--media-accent-color`.
@@ -56,6 +57,8 @@ smaller and its caption is the time alone. Under 21rem the captions button goes 
 
 - Dragging the timeline, dragging sideways on the picture, or anything that seeks by more than a couple of seconds
   (keys, double-tap, a replay) wraps the picture into the orb. Jumps do it briskly: about 180ms in, 280ms out.
+- A click on the timeline is a jump, not a scrub: one complete brisk wrap to the new moment, or a plain cut when the
+  step is under about 2.5 seconds. Pressing only starts a scrub once the pointer moves or the press is held.
 - Resting the pointer on the timeline only peeks: a small orb rises at the pointer showing that moment, with the
   time, the offset from now and the chapter title beneath it, and the picture is left alone.
 - Buffering: a small orb in the centre, refracting the stalled frame, with fog turning inside it.
