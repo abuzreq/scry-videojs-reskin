@@ -57,8 +57,10 @@
         <div class="prose">
           <p>
             Every video comes with a storyboard: one image with a small frame every few seconds, meant for
-            thumbnails. Scry works out how the picture moves between those frames and blends them along that motion,
-            so a few dozen stills play like footage. It runs in your browser as shader code. Nothing is uploaded.
+            thumbnails. Scry runs optical flow over it, estimating how each point of the picture moves from one frame
+            to the next, then warps and blends the frames along that motion, so a few dozen stills play like footage.
+            The flow, the blend, the glass and the fire are all WebGL shaders running in your browser. Nothing is
+            uploaded.
           </p>
           <p>
             Underneath are the standard Video.js controls, keyboard and screen reader support included. With reduced
