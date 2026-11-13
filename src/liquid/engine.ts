@@ -348,6 +348,19 @@ export class LiquidEngine {
     }
   }
 
+  /** Wipe the canvas, leaving whatever is underneath it in view. */
+  clear(): void {
+    const gl = this.#gl;
+
+    if (this.#lost) return;
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    gl.disable(gl.SCISSOR_TEST);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+  }
+
   /** Draw the orb. Clears the canvas first; with `presence` 0 it only clears. */
   render(view: OrbView): void {
     const gl = this.#gl;

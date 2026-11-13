@@ -10,9 +10,11 @@ Arrive, and the orb uncurls onto the new frame. Resting the pointer on the timel
 that moment and leaves the picture alone. The same stone appears wherever the player waits or rests: smoke and
 sparks while buffering, and the opening frame held in it at the end.
 
-The rest of the skin takes its cue from the stone and otherwise stays quiet: warm ink, a hairline timeline in old
-gold with a dark, ember-edged bead, thin-stroke icons drawn for the skin, smoke-dark menus, and serif small capitals
-for names. A clear-glass variant is one attribute away.
+The rest of the skin is cut from the same material. Icons are incised, with mitred corners and small diamonds
+where a pen would dot. Names are set in Roman capitals. Menus, tooltips and the time plate are small dark tablets
+with a hairline of gold; volume is a flame that stands taller and burns hotter; four engraved corner marks frame
+the picture while the controls are up. Numbers stay plain so times read at a glance. A clear-glass variant, with
+its own rounder icon set, is one attribute away.
 
 The effect runs in the browser in WebGL2 fragment shaders (optical flow between storyboard frames, the morph, the
 wrap, the lens and the fire) with no model to download. It is decoration over working controls: every control is a
@@ -33,5 +35,6 @@ wraps.
       only. If a device struggles, lower `ScryVisionElement.maxPixels`.
 - [ ] Replace the placeholder video in `apps/preview/src/frame/player.ts` with your own Mux asset and note its
       playback ID for the bonus point. Footage with long takes shows the interpolation best.
-- [ ] Replace the copyright line in `LICENSE` with your name.
+- [ ] Replace the copyright line in `LICENSE` with your name. The bundled typeface (Cinzel) keeps its own licence,
+      the SIL Open Font License, in `src/video/fonts/OFL.txt`.
 - [ ] The challenge page marks submissions as needing an external social post; check the form.

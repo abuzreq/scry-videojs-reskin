@@ -13,7 +13,12 @@ Two materials, one skin. The default is a **dark seeing-stone**; `stone="glass"`
 | Waiting | Smoke, with sparks rising through it. | White fog. |
 | Ink | Warm white `#f6eedf`; old gold `#e3c078` for what is played. | White; white for what is played. |
 | Bead and knob | A dark stone with an ember edge. | A pale glass bead. |
-| Names (title, chapters) | Serif small capitals, letterspaced; chapter title under the orb in gold. | Sans title; chapters in italic serif. |
+| Names (title, chapters, menu labels) | Cinzel, Roman capitals, letterspaced; chapter title under the orb in gold. | Sans title; chapters in italic serif. |
+| Icons | Cut: mitred joins, square ends, small diamonds where a pen would dot; play and pause solid, like inlay. | Drawn: round caps and joins, outlines. |
+| Menus, tooltips, plates | Dark tablets, small radius, a hairline of gold; the row in use takes a gold wash and a gold edge. | Smoke glass, rounder. |
+| Volume | A flame: deep red at the foot, gold at the top, with an ember for a thumb. | A white line with a glass bead. |
+| Frame | Four engraved corner marks that come and go with the controls. | None. |
+| Between the times | A cut diamond. | A slash. |
 | Play control at rest | The stone asleep: black, a little fire low inside. | Smoke glass. |
 
 Both keep numbers in plain tabular sans, so times read at a glance, and both honour `--media-accent-color`.

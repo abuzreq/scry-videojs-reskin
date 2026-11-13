@@ -65,5 +65,8 @@ import '@videojs/html/ui/seek-indicator-value';
 import './scry-vision';
 import { registerIcons } from '@videojs/html/icons';
 import { scryIcons } from './icons';
+import { scryGlassIcons } from './icons/glass';
 
+// Two cuts of the same icons: the seeing-stone's (the default family in the markup) and the clear glass's.
 registerIcons('scry', scryIcons);
+registerIcons('scry-glass', scryGlassIcons);

@@ -10,12 +10,21 @@ the wrap and the lens. There is no model to download and no extension to enable.
 also fetches that exact frame from Mux so the orb comes into focus. Without WebGL2, or with reduced motion turned on,
 nothing wraps: seeks cut and the timeline preview shows a still thumbnail.
 
-The orb is a dark seeing-stone by default: the picture surfaces out of black glass, a fire inside it brightens the
-harder time is driven, and the rest of the skin follows in warm ink, old gold and serif capitals.
+The orb is a dark seeing-stone by default: the picture surfaces out of black glass and a fire inside it brightens the
+harder time is driven. The rest of the skin follows: warm ink and old gold, icons cut with mitred corners and small
+diamonds, names in Roman capitals, menus and tooltips as dark tablets with a gold hairline, volume as a flame, and
+four engraved corner marks around the picture.
 `<scry-vision stone="glass">` (or `?stone=glass`) makes it clear crystal with cool white chrome instead.
 
 Merely resting the pointer on the timeline peeks instead: a small orb at the pointer shows that moment and the
 picture is left alone.
+
+## Third-party material
+
+The display face is [Cinzel](https://github.com/NDISCOVER/Cinzel) (one weight, Latin), bundled in
+`src/video/fonts/` under the SIL Open Font License 1.1; its licence is `src/video/fonts/OFL.txt`. Everything else in
+the skin, including both icon sets, is original and under the Apache License 2.0. Text in scripts Cinzel does not
+cover falls back to the system serif.
 
 ## Seeing the flow on its own
 
@@ -40,7 +49,7 @@ ONNX runtime from jsDelivr, once, cached by the browser. It is off by default, a
 
 ## Layout
 
-- `src/video/` — the skin: markup (`skin.html`), elements and icons (`skin.ts`, `icons/`), styles (`skin.css` for
+- `src/video/` — the skin: markup (`skin.html`), elements and icons (`skin.ts`, `icons/`), the typeface (`fonts/`), styles (`skin.css` for
   structure, `scry.css` for the look), `scry-vision.ts`, the element that draws the orb, and `scry-arc.ts`, the curved timeline.
 - `src/liquid/` — the engine, with no dependency on Video.js: `engine.ts`, `shaders.ts`, `storyboard.ts`, and the
   optional `depth.ts` and `depth.worker.ts`.

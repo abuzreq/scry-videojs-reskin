@@ -4,6 +4,7 @@ import {
   playerContext,
   selectBuffer,
   selectControls,
+  selectError,
   selectPlayback,
   selectTextTrack,
   selectTime,
@@ -115,6 +116,7 @@ export class ScryVisionElement extends UIElement {
   #buffer = new PlayerController(this, playerContext, selectBuffer);
   #tracks = new PlayerController(this, playerContext, selectTextTrack);
   #controls = new PlayerController(this, playerContext, selectControls);
+  #error = new PlayerController(this, playerContext, selectError);
 
   #disconnect: AbortController | null = null;
   #canvas: HTMLCanvasElement | null = null;
@@ -198,11 +200,25 @@ export class ScryVisionElement extends UIElement {
     if (!container || !slider) return;
 
     // The material themes the whole skin, not only the orb, so the container carries it from the first paint.
-    const material = new MutationObserver(() => container.setAttribute('data-scry-stone', this.#stone));
+    const dress = () => {
+      const family = this.#stone === 'glass' ? 'scry-glass' : 'scry';
+      // Icons already on the page, and those still waiting in templates for menus to stamp out.
+      const icons = [
+        ...container.querySelectorAll('media-icon'),
+        ...[...container.querySelectorAll('template')].flatMap((template) => [
+          ...template.content.querySelectorAll('media-icon'),
+        ]),
+      ];
+
+      container.setAttribute('data-scry-stone', this.#stone);
+
+      for (const icon of icons) if (icon.getAttribute('family') !== family) icon.setAttribute('family', family);
+    };
+    const material = new MutationObserver(dress);
 
     material.observe(this, { attributes: true, attributeFilter: ['stone'] });
     signal.addEventListener('abort', () => material.disconnect());
-    container.setAttribute('data-scry-stone', this.#stone);
+    dress();
 
     this.#reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     this.#reducedMotion.addEventListener('change', () => this.#syncMode(), { signal });
@@ -294,6 +310,13 @@ export class ScryVisionElement extends UIElement {
     const time = this.#time.value;
 
     if (!time) return;
+
+    // When playback fails there is nothing to arrive at: put the orb away so the error dialog has the stage.
+    if (this.#error.value?.error) {
+      if (this.#figure !== 'none') this.#rest();
+
+      return;
+    }
 
     // Anything that seeks without a pointer on the timeline is a jump: keys, taps, a replay, another script.
     if (time.seeking && !this.#wasSeeking && this.#live && !this.#scrubbing && this.#clock > this.#graceUntil) {
@@ -1021,6 +1044,8 @@ export class ScryVisionElement extends UIElement {
     this.#mist = 0;
     this.#detail = 0;
     this.#still = 0;
+    // Nothing may be drawing after this (a failed source has no duration to tick on), so wipe the canvas now.
+    this.#engine?.clear();
     this.#container?.removeAttribute('data-scry-wrapped');
     this.#container?.removeAttribute('data-scry-flat');
     this.#arc?.element.removeAttribute('data-visible');
@@ -1037,9 +1062,11 @@ export class ScryVisionElement extends UIElement {
 
   /** The big orb: in the middle, a little above centre so the curved bar has room beneath it. */
   #bigShape(host: DOMRect): Shape {
-    const radius = Math.max(36, Math.min(host.height * 0.36, host.width * 0.3, (host.height - 64) / 2));
+    // Short players give the orb what is left after the curved bar and its time plate have their room beneath.
+    const radius = Math.max(36, Math.min(host.height * 0.36, host.width * 0.3, (host.height - 68) / 2));
+    const y = Math.min(Math.max(host.height * 0.45, radius + 10), host.height - radius - 58);
 
-    return { x: host.width / 2, y: Math.max(host.height * 0.45, radius + 10), radius, wide: 1, stage: 1 };
+    return { x: host.width / 2, y, radius, wide: 1, stage: 1 };
   }
 
   /** An element's circle, in CSS pixels relative to this element. */
