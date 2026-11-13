@@ -32,7 +32,7 @@ const DRAG_THRESHOLD = 8;
 /** A full-width drag on the picture covers this share of the video, and never less than this many seconds. */
 const DRAG_SHARE = 1 / 3;
 const DRAG_MIN_SECONDS = 45;
-/** With `hover="orb"`, how long the orb stays closed after the pointer leaves it. */
+/** Where hovering travels, how long the travelling goes on after the pointer leaves. */
 const HOVER_LINGER = 0.22;
 /** The pointer has to rest this long before the exact frame is fetched. */
 const DWELL_SECONDS = 0.16;
@@ -75,12 +75,13 @@ const toward = (value: number, goal: number, rate: number, dt: number) => value 
  * the player. Inside it the storyboard flows from moment to moment instead of flipping; around its lower rim the
  * timeline curls into an arc. When the travelling ends the orb unwraps onto the new frame.
  *
+ * Merely resting the pointer on the timeline peeks instead: a small orb at the pointer shows that moment and the
+ * picture is left alone.
+ *
  * The same glass shows up in the other places the player waits or rests: fog in a small orb while buffering, and
  * the opening frame held in an orb when the video has ended.
  *
  * Attributes:
- * - `hover="orb"` (default): resting the pointer on the timeline wraps the picture too, so you can look around
- *   before committing. `hover="peek"`: hovering shows a small orb at the pointer and leaves the picture alone.
  * - `shape="flat"`: nothing wraps. Time travel plays the same flowing picture across the plain rectangle, with no
  *   lens, glass or stage, so the morph itself can be seen. `inspect="flow"`, `"compare"` or `"agreement"` then shows
  *   the flow field, a plain crossfade beside the morph, or where the two frames agree.
@@ -384,9 +385,12 @@ export class ScryVisionElement extends UIElement {
     return (this.#engine?.tiles.length ?? 0) > 1;
   }
 
-  get #hoverMode(): 'orb' | 'peek' {
-    // Flat, hovering always looks around across the whole frame: that is what the mode is for.
-    return this.getAttribute('hover') === 'peek' && !this.#flat ? 'peek' : 'orb';
+  /**
+   * What resting the pointer on the timeline does. Normally it peeks: a small orb at the pointer, the picture left
+   * alone. Flat, it travels: the whole frame follows the pointer, which is what that mode is for.
+   */
+  get #hoverMode(): 'travel' | 'peek' {
+    return this.#flat ? 'travel' : 'peek';
   }
 
   /** `shape="flat"`: the picture stays a rectangle. */
@@ -547,7 +551,7 @@ export class ScryVisionElement extends UIElement {
       this.#wake();
     }
 
-    if (this.#hoverMode === 'orb' && this.#closed) this.#wake();
+    if (this.#hoverMode === 'travel' && this.#closed) this.#wake();
     if (!drag || drag.pointer !== event.pointerId || !time || !container) return;
 
     const dx = event.clientX - drag.x;
@@ -679,8 +683,8 @@ export class ScryVisionElement extends UIElement {
     const onBar = this.#barPressed || dragging;
     const hoverable = this.#pointer?.mouse !== false && !this.#quiet;
 
-    // With hover="orb", resting on the timeline (or, once closed, anywhere on the orb) keeps it closed.
-    if (this.#hoverMode === 'orb' && hoverable) {
+    // Where hovering travels, resting on the timeline (or, once closed, anywhere on the picture's orb) keeps it closed.
+    if (this.#hoverMode === 'travel' && hoverable) {
       const arcTime = this.#pointer ? (this.#arc?.timeUnder(this.#pointer.x, this.#pointer.y) ?? null) : null;
       // Once hovering has closed the orb, the pointer may wander over it (to reach the arc) without it opening.
       const onOrb =
@@ -701,7 +705,7 @@ export class ScryVisionElement extends UIElement {
       }
     }
 
-    const hovering = this.#hoverMode === 'orb' && hoverable && this.#clock < this.#hoverUntil;
+    const hovering = this.#hoverMode === 'travel' && hoverable && this.#clock < this.#hoverUntil;
     const jumping = this.#clock < this.#jumpUntil;
 
     if (onBar) {
@@ -766,9 +770,14 @@ export class ScryVisionElement extends UIElement {
     } else if (playback?.waiting && !playback.paused && !this.#flat) {
       this.#waitAge += dt;
 
-      const circle = this.#measure(this.#centre, host);
+      // The skin hides its centre button while buffering, so the fog takes that button's usual place and size.
+      const circle = this.#measure(this.#centre, host) ?? {
+        x: host.width / 2,
+        y: host.height * (host.width < 448 ? 0.4 : 0.5),
+        radius: Math.min(44, Math.max(30, host.width * 0.065)),
+      };
 
-      if (circle && this.#waitAge > MIST_DELAY) {
+      if (this.#waitAge > MIST_DELAY) {
         if (this.#figure !== 'mist') {
           this.#figure = 'mist';
           this.#target = this.#shown = time.currentTime;
@@ -1003,7 +1012,7 @@ export class ScryVisionElement extends UIElement {
 
   /** The big orb: in the middle, a little above centre so the curved bar has room beneath it. */
   #bigShape(host: DOMRect): Shape {
-    const radius = Math.max(36, Math.min(host.height * 0.38, host.width * 0.3, (host.height - 64) / 2));
+    const radius = Math.max(36, Math.min(host.height * 0.36, host.width * 0.3, (host.height - 64) / 2));
 
     return { x: host.width / 2, y: Math.max(host.height * 0.45, radius + 10), radius, wide: 1, stage: 1 };
   }

@@ -10,14 +10,14 @@ the wrap and the lens. There is no model to download and no extension to enable.
 also fetches that exact frame from Mux so the orb comes into focus. Without WebGL2, or with reduced motion turned on,
 nothing wraps: seeks cut and the timeline preview shows a still thumbnail.
 
-`<scry-vision hover="orb">` (the default) also wraps the picture when the pointer merely rests on the timeline;
-`hover="peek"` shows a small orb at the pointer instead. The showcase page has a switch for the two.
+Merely resting the pointer on the timeline peeks instead: a small orb at the pointer shows that moment and the
+picture is left alone.
 
 ## Seeing the flow on its own
 
 `<scry-vision shape="flat">` (or `?shape=flat` on the showcase or preview) keeps the picture a rectangle: time travel
-plays the same flowing picture across the whole frame with no lens, glass or stage, and hovering the timeline looks
-around. `inspect` then shows what is behind it:
+plays the same flowing picture across the whole frame with no lens, glass or stage, and hovering the timeline
+travels instead of peeking. `inspect` then shows what is behind it:
 
 - `inspect="compare"`: a plain crossfade on the left half, the flow morph on the right.
 - `inspect="flow"`: the flow field. Colour is the direction a point travels from one storyboard tile to the next,

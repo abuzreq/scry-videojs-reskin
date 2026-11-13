@@ -35,8 +35,8 @@ smaller and its caption is the time alone. Under 21rem the captions button goes 
 
 - Dragging the timeline, dragging sideways on the picture, or anything that seeks by more than a couple of seconds
   (keys, double-tap, a replay) wraps the picture into the orb. Jumps do it briskly: about 180ms in, 280ms out.
-- `hover="orb"` (default): resting the pointer on the timeline wraps it too, to look around before committing.
-  `hover="peek"`: hovering shows a small orb at the pointer instead and leaves the picture alone.
+- Resting the pointer on the timeline only peeks: a small orb rises at the pointer showing that moment, with the
+  time, the offset from now and the chapter title beneath it, and the picture is left alone.
 - Buffering: a small orb in the centre, refracting the stalled frame, with fog turning inside it.
 - Ended: an orb in the centre holding the opening frame, with the replay control in it; the last frame dims behind.
 

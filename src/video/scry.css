@@ -97,8 +97,8 @@
       opacity: 0;
     }
 
-    /* With hover="orb" the big orb is the preview, so the small one at the pointer never shows. */
-    :scope[data-scry-hover="orb"] .media-time-slider-preview {
+    /* Where hovering travels (the flat study mode) the whole frame is the preview, so the small orb never shows. */
+    :scope[data-scry-hover="travel"] .media-time-slider-preview {
       display: none;
     }
 
@@ -225,28 +225,15 @@
       }
     }
 
+    /* The arc is drawn over the orb's own dark stage, which system colours do not repaint, so it keeps its ink. */
     @media (forced-colors: active) {
-      .scry-arc-track {
-        stroke: canvastext;
-        stroke-opacity: 0.5;
-      }
-
-      .scry-arc-buffer {
-        stroke: canvastext;
-      }
-
-      .scry-arc-fill {
-        stroke: highlight;
-        filter: none;
-      }
-
-      .scry-arc-knob {
-        fill: highlight;
-        stroke: canvastext;
+      .scry-arc {
+        forced-color-adjust: none;
+        color: white;
       }
 
       .scry-arc-plate {
-        border: 1px solid canvastext;
+        border: 1px solid white;
       }
     }
 

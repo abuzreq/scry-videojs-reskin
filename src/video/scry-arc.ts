@@ -266,7 +266,7 @@ export class ArcBar {
     place(this.#start, outward(0, 20));
     place(this.#end, outward(1, 20));
     place(this.#plate, outward(knob, 30));
-    place(this.#title, [geometry.cx, geometry.cy + reach + 62]);
+    place(this.#title, [geometry.cx, geometry.cy + reach + 58]);
 
     const chapter = state.chapters.find((entry) => state.knobTime >= entry.start && state.knobTime < entry.end);
 
