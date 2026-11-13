@@ -167,8 +167,10 @@ version it was made with.
 - Built on [Video.js v10](https://videojs.org).
 - The demo film is the first 2:20 of
   [*Eruption of Fagradalsfjall volcano, 2021-03-24, 2*](https://commons.wikimedia.org/wiki/File:Eruption_of_Fagradalsfjall_volcano,_2021-03-24,_2.webm)
-  by Mladen Stojanovic, used under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) and shortened. It is
-  hosted on [Mux](https://www.mux.com), playback ID `1Xy015xxsJduTP5ZZQFTD7m00D5hLcwslpwppWEPIuYWs`.
+  by Mladen Stojanovic, used under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), shortened and set
+  to music. It is hosted on [Mux](https://www.mux.com), playback ID `cG6Xmjnjk00mL00gtnEd025kxhn6jLi6j6ht016BbTh8qQw`.
+- The music on the demo film is *Transpire* by Hampus Naeselius, licensed from Epidemic Sound. It is part of the
+  hosted video only; no music is in this repository.
 - The display typeface is [Cinzel](https://github.com/NDISCOVER/Cinzel) by Natanael Gama, bundled in
   `src/video/fonts/` under the SIL Open Font License 1.1 (`src/video/fonts/OFL.txt`).
 - Everything else in the skin, including the icons, is original work.

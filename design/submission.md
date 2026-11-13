@@ -35,6 +35,7 @@ nothing wraps.
 
 - Source: https://github.com/abuzreq/scry-videojs-reskin
 - Author: https://abuzreq.com/
-- Mux playback ID of the demo film: `1Xy015xxsJduTP5ZZQFTD7m00D5hLcwslpwppWEPIuYWs`
+- Mux playback ID of the demo film: `cG6Xmjnjk00mL00gtnEd025kxhn6jLi6j6ht016BbTh8qQw`
 - Film credit: *Eruption of Fagradalsfjall volcano, 2021-03-24, 2* by Mladen Stojanovic, CC BY 3.0, from
-  Wikimedia Commons; the first 2:20, shortened.
+  Wikimedia Commons; the first 2:20, shortened and set to music.
+- Music credit: *Transpire* by Hampus Naeselius, licensed from Epidemic Sound.

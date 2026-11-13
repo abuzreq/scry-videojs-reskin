@@ -9,8 +9,9 @@ import skinTemplate from '@/video/skin.html?raw';
 //
 // The film is the first 2:20 of "Eruption of Fagradalsfjall volcano, 2021-03-24, 2" by Mladen Stojanovic, from
 // Wikimedia Commons under CC BY 3.0: one unbroken drone flight, which is what the stone shows off best.
-const PLAYBACK_ID = '1Xy015xxsJduTP5ZZQFTD7m00D5hLcwslpwppWEPIuYWs';
-const POSTER_TIME = 58;
+// The film is silent; the music laid under it is "Transpire" by Hampus Naeselius, licensed from Epidemic Sound.
+const PLAYBACK_ID = 'cG6Xmjnjk00mL00gtnEd025kxhn6jLi6j6ht016BbTh8qQw';
+const POSTER_TIME = 59;
 const CHAPTERS: string | null = './fagradalsfjall-chapters.vtt';
 
 const SRC = `https://stream.mux.com/${PLAYBACK_ID}.m3u8`;
