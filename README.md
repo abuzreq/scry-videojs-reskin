@@ -56,8 +56,9 @@ npm run dev
 The home page plays the skin. `/workbench.html` opens it in the Video.js workbench, where you can change the
 player's size, aspect ratio, text direction and language. `/preview.html` is the player on its own.
 
-To play something else, change the source in `apps/preview/src/frame/player.ts`. Any Mux or HLS source works; one
-with a storyboard track gets the full effect.
+To play something else, change the playback ID, poster time and chapters file at the top of
+`apps/preview/src/frame/player.ts`. Footage with long, slow takes shows the effect best, and a clip of a couple of
+minutes gives a denser storyboard than a long film.
 
 ## Use the skin
 
