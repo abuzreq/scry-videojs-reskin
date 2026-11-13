@@ -55,6 +55,194 @@
       display: block;
     }
 
+    /* Sideways drags on the picture travel through time; up and down still scrolls the page. */
+    :scope[data-scry-hover] {
+      touch-action: pan-y;
+    }
+
+    /* ---------- Wrapped: the picture is the orb, and everything else steps back ---------- */
+
+    .video-controls-row,
+    .media-time-slider-chapters,
+    .media-time-slider-thumb {
+      transition: opacity var(--media-duration) ease-out;
+    }
+
+    :scope[data-scry-wrapped] :is(.video-controls-top, .video-controls-row, .video-controls-center) {
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    /* The straight bar keeps working underneath; the line that is drawn is the one that bends. */
+    :scope[data-scry-wrapped] .media-time-slider :is(.media-time-slider-chapters, .media-time-slider-preview) {
+      opacity: 0;
+      transition-duration: 0s;
+    }
+
+    :scope[data-scry-wrapped] .media-time-slider-thumb:not(:focus-visible) {
+      opacity: 0;
+      transition-duration: 0s;
+    }
+
+    :scope[data-scry-wrapped] .media-time-slider-thumb:focus-visible {
+      background: none;
+      box-shadow: none;
+      outline: none;
+    }
+
+    /* With hover="orb" the big orb is the preview, so the small one at the pointer never shows. */
+    :scope[data-scry-hover="orb"] .media-time-slider-preview {
+      display: none;
+    }
+
+    /* While fog or the ending holds the centre, the glass is drawn for real and the button only carries its icon. */
+    :scope[data-scry-mist] .media-buffering-indicator-spinner-icon {
+      visibility: hidden;
+    }
+
+    :scope[data-scry-ended] .video-controls-center-play,
+    :scope[data-scry-ended] .video-controls-center-play:hover {
+      background: none !important;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+
+    /* ---------- The curved bar ---------- */
+
+    .scry-arc {
+      pointer-events: none;
+      display: none;
+      position: absolute;
+      inset: 0;
+    }
+
+    .scry-arc[data-visible] {
+      display: block;
+    }
+
+    .scry-arc-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      inset: 0;
+      overflow: visible;
+    }
+
+    .scry-arc-mask {
+      stroke: white;
+    }
+
+    .scry-arc-track {
+      stroke: rgb(255 255 255 / 0.3);
+      stroke-linecap: round;
+    }
+
+    .scry-arc-buffer {
+      stroke: rgb(255 255 255 / 0.32);
+    }
+
+    .scry-arc-fill {
+      stroke: var(--media-accent);
+      filter: drop-shadow(0 0 4px rgb(255 255 255 / 0.45));
+    }
+
+    .scry-arc-hit {
+      cursor: pointer;
+      stroke: transparent;
+      stroke-width: 30;
+      stroke-linecap: round;
+    }
+
+    .scry-arc-knob {
+      filter: drop-shadow(0 2px 5px rgb(0 0 0 / 0.55)) drop-shadow(0 0 6px rgb(255 255 255 / 0.3));
+    }
+
+    .scry-arc-ring {
+      fill: none;
+      stroke: var(--media-ring);
+      stroke-width: 2;
+    }
+
+    .scry-arc-time,
+    .scry-arc-plate,
+    .scry-arc-title {
+      white-space: nowrap;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .scry-arc-time {
+      color: var(--scry-ink-soft);
+      font-size: calc(var(--media-spacing) * 3);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.03em;
+    }
+
+    .scry-arc-plate {
+      gap: calc(var(--media-spacing) * 1.5);
+      padding: calc(var(--media-spacing) * 0.75) calc(var(--media-spacing) * 2.25);
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      background-color: var(--media-popover);
+      box-shadow: var(--media-shadow-surface), var(--media-shadow-surface-inset);
+      border-radius: 999px;
+      display: flex;
+    }
+
+    .scry-arc-offset {
+      color: var(--scry-ink-soft);
+      font-weight: 400;
+    }
+
+    .scry-arc-offset:empty {
+      display: none;
+    }
+
+    .scry-arc-title {
+      font-family: var(--scry-serif);
+      font-size: calc(var(--media-spacing) * 4.25);
+      font-style: italic;
+      letter-spacing: 0;
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @container media-root (width < 28rem) {
+      .scry-arc-title {
+        display: none;
+      }
+    }
+
+    @media (forced-colors: active) {
+      .scry-arc-track {
+        stroke: canvastext;
+        stroke-opacity: 0.5;
+      }
+
+      .scry-arc-buffer {
+        stroke: canvastext;
+      }
+
+      .scry-arc-fill {
+        stroke: highlight;
+        filter: none;
+      }
+
+      .scry-arc-knob {
+        fill: highlight;
+        stroke: canvastext;
+      }
+
+      .scry-arc-plate {
+        border: 1px solid canvastext;
+      }
+    }
+
     /* ---------- Scrim ---------- */
 
     .video-controls-backdrop {
@@ -432,22 +620,6 @@
       scale: 1;
     }
 
-    /* After a keyboard seek the orb rises at the bead instead of the pointer, and names the time it landed on. */
-    :scope[data-scry-keys] .media-time-slider:not([data-dragging], [data-pointing]) .media-time-slider-preview {
-      --media-slider-pointer: var(--media-slider-fill);
-      opacity: 1;
-      scale: 1;
-    }
-
-    .scry-value-current,
-    :scope[data-scry-keys] .media-time-slider:not([data-dragging], [data-pointing]) .media-time-slider-value {
-      display: none;
-    }
-
-    :scope[data-scry-keys] .media-time-slider:not([data-dragging], [data-pointing]) .scry-value-current {
-      display: inline;
-    }
-
     .scry-orb {
       width: var(--scry-orb-size);
       aspect-ratio: 1;
@@ -508,7 +680,7 @@
     }
 
     /* Once the orb opens over the frame its caption has said its piece. */
-    :scope:is([data-scry-bloom], [data-scry-quiet]) .media-time-slider-preview {
+    :scope[data-scry-quiet] .media-time-slider-preview {
       opacity: 0;
       transition-duration: var(--media-duration-fast);
     }
@@ -605,7 +777,6 @@
     }
 
     /* One orb at a time: looking ahead hides the play orb. */
-    :scope[data-scry-keys] .video-controls-center,
     :scope:has(.media-time-slider:is([data-dragging], [data-pointing])) .video-controls-center {
       pointer-events: none;
       opacity: 0;

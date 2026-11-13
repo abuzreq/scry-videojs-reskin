@@ -1,7 +1,7 @@
 // Development only: contact sheets of the liquid engine, for judging the morph by eye. Not part of the build.
 //   lab.html?pairs=2,10,22&mode=flat      rows of the bare morph across each pair
 //   lab.html?pairs=2,10,22&mode=orb       the same inside the orb
-//   lab.html?mode=bloom&pairs=10          the orb opening over a frame
+//   lab.html?mode=wrap&pairs=10           the frame wrapping into the big orb (also mode=mist, mode=small-mist)
 import { LiquidEngine } from '@/liquid/engine';
 import { loadSprite, tilesFromCues } from '@/liquid/storyboard';
 
@@ -99,9 +99,12 @@ async function main() {
     });
   } else {
     // The orb clears the canvas on each draw, so cells are copied out to a 2D sheet.
+    //   orb   the small orb across each pair          wrap  the frame wrapping into the big orb
+    //   mist  the big orb filling with fog            small-mist  the waiting orb over a frame
     const sheet = document.createElement('canvas');
-    const bloom = mode === 'bloom';
-    const w = bloom ? Math.round(cell * aspect) : cell;
+    const framed = mode !== 'orb';
+    const ratio = Number(params.get('ratio') ?? aspect);
+    const w = framed ? Math.round(cell * ratio) : cell;
     const h = cell;
 
     sheet.width = w * steps;
@@ -110,21 +113,41 @@ async function main() {
     canvas.height = h;
 
     const context = sheet.getContext('2d')!;
+    // The picture's place in the cell, letterboxed like the player would.
+    const fit = ratio > aspect ? { width: h * aspect, height: h } : { width: w, height: w / aspect };
+    const frame = { x: (w - fit.width) / 2, y: (h - fit.height) / 2, ...fit };
+    const big = Math.min(h * 0.4, w * 0.3);
 
-    context.fillStyle = '#6d7480';
-    context.fillRect(0, 0, sheet.width, sheet.height);
     pairs.forEach((pair, row) => {
       for (let i = 0; i < steps; i++) {
         const f = i / (steps - 1);
+        const small = mode === 'orb' || mode === 'small-mist';
+
+        // Stand-in for the video underneath: the tile itself, flat.
+        context.fillStyle = '#000';
+        context.fillRect(i * w, row * h, w, h);
+
+        if (framed) {
+          const tile = tiles[pair]!;
+
+          context.drawImage(image, tile.x, tile.y, tile.width, tile.height, i * w + frame.x, row * h + frame.y, frame.width, frame.height);
+        } else {
+          context.fillStyle = '#6d7480';
+          context.fillRect(i * w, row * h, w, h);
+        }
 
         engine.render({
-          time: bloom ? timeAt(pair, 0) : timeAt(pair, f),
-          x: bloom ? w * 0.62 : w / 2,
-          y: bloom ? h * 0.7 : h / 2,
-          radius: bloom ? h * 0.2 : h * 0.42,
-          frame: { x: 0, y: 0, width: w, height: h },
+          time: mode === 'orb' ? timeAt(pair, f) : timeAt(pair, mode === 'wrap' ? f * 0.5 : 0),
+          x: w / 2,
+          y: mode === 'orb' ? h / 2 : h * 0.46,
+          radius: mode === 'orb' ? h * 0.42 : mode === 'small-mist' ? h * 0.13 : big,
+          frame,
           presence: 1,
-          bloom: bloom ? f : 0,
+          wrap: mode === 'wrap' ? f : 1,
+          stage: mode === 'wrap' ? Math.min(1, f * 1.4) : small ? 0 : 1,
+          wide: small ? 0 : 1,
+          mist: mode === 'mist' || mode === 'small-mist' ? f : 0,
+          clock: 3 + f * 6,
           reveal: 0,
           detail: 0,
           parallax: [0, 0],

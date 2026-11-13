@@ -20,8 +20,16 @@ export interface OrbView {
   frame: { x: number; y: number; width: number; height: number };
   /** 0 hidden, 1 fully there. */
   presence: number;
-  /** 0 a sphere on the timeline, 1 opened over the whole frame. */
-  bloom: number;
+  /** 0 a flat rectangle lying exactly on `frame`, 1 the sphere. */
+  wrap: number;
+  /** 0..1: how dark everything outside the shape is. */
+  stage: number;
+  /** 0 the tight lens of the small orb, 1 the wide lens that takes in nearly the whole frame. */
+  wide: number;
+  /** 0..1: fog inside the glass. */
+  mist: number;
+  /** Seconds, for anything that moves on its own. */
+  clock: number;
   /** 0 the orb's own picture, 1 fully given way to the video underneath. */
   reveal: number;
   /** 0..1: how much of the detail picture (see `setDetail`) to show in place of the storyboard. */
@@ -346,8 +354,8 @@ export class LiquidEngine {
 
     if (this.#lost || !this.ready || view.presence <= 0.001) return;
 
-    // A resting orb touches a small part of the canvas; only shade that part.
-    if (view.bloom <= 0) {
+    // A small orb with no stage touches a small part of the canvas; only shade that part.
+    if (view.wrap >= 1 && view.stage <= 0) {
       const reach = view.radius * 1.9;
       const x = Math.floor(view.x - reach);
       const y = Math.floor(this.canvas.height - (view.y + reach));
@@ -364,7 +372,11 @@ export class LiquidEngine {
     gl.uniform2f(uniforms.uResolution!, this.canvas.width, this.canvas.height);
     gl.uniform3f(uniforms.uOrb!, view.x, view.y, view.radius);
     gl.uniform4f(uniforms.uFrame!, view.frame.x, view.frame.y, view.frame.width, view.frame.height);
-    gl.uniform1f(uniforms.uBloom!, view.bloom);
+    gl.uniform1f(uniforms.uWrap!, view.wrap);
+    gl.uniform1f(uniforms.uStage!, view.stage);
+    gl.uniform1f(uniforms.uWide!, view.wide);
+    gl.uniform1f(uniforms.uMist!, view.mist);
+    gl.uniform1f(uniforms.uClock!, view.clock);
     gl.uniform1f(uniforms.uPresence!, view.presence);
     gl.uniform1f(uniforms.uReveal!, view.reveal);
     gl.uniform1f(uniforms.uPixelRatio!, view.pixelRatio);

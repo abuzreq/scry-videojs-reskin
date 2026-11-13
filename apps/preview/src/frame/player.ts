@@ -20,10 +20,16 @@ export function createPlayer(): HTMLElement {
     `<mux-video src="${SRC}" playsinline crossorigin><track kind="chapters" label="English" srclang="en" src="${CHAPTERS}" default></mux-video>`
   );
 
-  // The depth tier is opt-in while it is being evaluated: add ?depth=auto (WebGPU) or ?depth=wasm to the page URL.
-  const depth = new URLSearchParams(location.search).get('depth');
+  // Options under evaluation, set from the page URL: ?hover=orb|peek chooses what resting on the timeline does, and
+  // ?depth=auto (WebGPU) or ?depth=wasm switches on the depth tier.
+  const params = new URLSearchParams(location.search);
+  const vision = player.querySelector('scry-vision');
 
-  if (depth) player.querySelector('scry-vision')?.setAttribute('depth', depth);
+  for (const name of ['hover', 'depth']) {
+    const value = params.get(name);
+
+    if (value) vision?.setAttribute(name, value);
+  }
 
   return player;
 }
