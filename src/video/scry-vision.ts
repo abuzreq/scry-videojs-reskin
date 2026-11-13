@@ -507,6 +507,10 @@ export class ScryVisionElement extends UIElement {
 
     if (!video || video.readyState < 2 || !this.#engine || this.#inspect > 0) return;
 
+    // Where the browser plays the stream itself (HLS on iPhones) rather than through Media Source, frames read from
+    // a cross-origin video can come back black without any error. The storyboard picture is the safer start there.
+    if (/\.m3u8(\?|#|$)/.test(video.currentSrc)) return;
+
     try {
       this.#engine.setDetail(video);
       this.#detailTime = time;
