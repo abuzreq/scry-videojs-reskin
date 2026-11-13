@@ -34,7 +34,6 @@ const DRAG_SHARE = 1 / 3;
 const DRAG_MIN_SECONDS = 45;
 /** With `hover="orb"`, how long the orb stays closed after the pointer leaves it. */
 const HOVER_LINGER = 0.22;
-const MAX_PIXELS = 2_400_000;
 /** The pointer has to rest this long before the exact frame is fetched. */
 const DWELL_SECONDS = 0.16;
 const DETAIL_WIDTH = 512;
@@ -93,6 +92,18 @@ export class ScryVisionElement extends UIElement {
   /** Development aid: below 1 plays the orb's motion in slow motion, for inspecting it frame by frame. */
   static timeScale = 1;
 
+  /**
+   * Development aid: when true the orb stops following the clock and moves only when `advance()` is called, so its
+   * motion can be captured one exact frame at a time.
+   */
+  static manual = false;
+
+  /**
+   * Most canvas pixels the orb is drawn with, whatever the screen's density. Closed, the orb covers a large share
+   * of the player, so this is the knob to turn down if a device struggles.
+   */
+  static maxPixels = 2_400_000;
+
   #time = new PlayerController(this, playerContext, selectTime);
   #playback = new PlayerController(this, playerContext, selectPlayback);
   #buffer = new PlayerController(this, playerContext, selectBuffer);
@@ -142,6 +153,8 @@ export class ScryVisionElement extends UIElement {
   #drag: PictureDrag | null = null;
   #jumpUntil = 0;
   #hoverUntil = 0;
+  #hoverSession = false;
+  #quietAt: { x: number; y: number } | null = null;
   #graceUntil = 0;
   #quiet = false;
   #pointer: { x: number; y: number; mouse: boolean } | null = null;
@@ -392,7 +405,7 @@ export class ScryVisionElement extends UIElement {
     if (width < 1 || height < 1) return;
 
     // Sharp on dense screens, but never more pixels than the effect is worth.
-    const ratio = Math.min(devicePixelRatio || 1, 2, Math.sqrt(MAX_PIXELS / (width * height)));
+    const ratio = Math.min(devicePixelRatio || 1, 2, Math.sqrt(ScryVisionElement.maxPixels / (width * height)));
 
     canvas.width = Math.max(1, Math.round(width * ratio));
     canvas.height = Math.max(1, Math.round(height * ratio));
@@ -464,6 +477,7 @@ export class ScryVisionElement extends UIElement {
     this.#graceUntil = this.#clock + 0.35;
     // The pointer is usually still where it was; do not treat that as a new look until it moves away.
     this.#quiet = true;
+    this.#quietAt = this.#pointer ? { x: this.#pointer.x, y: this.#pointer.y } : null;
     this.#wake();
   }
 
@@ -514,6 +528,11 @@ export class ScryVisionElement extends UIElement {
     const drag = this.#drag;
     const time = this.#time.value;
     const container = this.#container;
+
+    if (this.#quiet && (!this.#quietAt || Math.hypot(event.clientX - this.#quietAt.x, event.clientY - this.#quietAt.y) > 24)) {
+      this.#quiet = false;
+      this.#wake();
+    }
 
     if (this.#hoverMode === 'orb' && this.#closed) this.#wake();
     if (!drag || drag.pointer !== event.pointerId || !time || !container) return;
@@ -604,16 +623,27 @@ export class ScryVisionElement extends UIElement {
   #tick = (now: number): void => {
     this.#frame = 0;
 
+    if (ScryVisionElement.manual) return;
+
+    const dt =
+      (this.#last ? Math.min(0.05, Math.max(0, (now - this.#last) / 1000)) : 1 / 60) * ScryVisionElement.timeScale;
+
+    this.#last = now;
+    this.#step(dt);
+  };
+
+  /** Move the orb's motion forward by `seconds` and draw. Only meant for use with `manual`. */
+  advance(seconds: number): void {
+    this.#step(seconds);
+  }
+
+  #step(dt: number): void {
     const slider = this.#slider;
     const time = this.#time.value;
     const playback = this.#playback.value;
 
     if (!slider || !time) return;
 
-    const dt =
-      (this.#last ? Math.min(0.05, Math.max(0, (now - this.#last) / 1000)) : 1 / 60) * ScryVisionElement.timeScale;
-
-    this.#last = now;
     this.#clock += dt;
 
     const engine = this.#engine;
@@ -639,12 +669,15 @@ export class ScryVisionElement extends UIElement {
     // With hover="orb", resting on the timeline (or, once closed, anywhere on the orb) keeps it closed.
     if (this.#hoverMode === 'orb' && hoverable) {
       const arcTime = this.#pointer ? (this.#arc?.timeUnder(this.#pointer.x, this.#pointer.y) ?? null) : null;
+      // Once hovering has closed the orb, the pointer may wander over it (to reach the arc) without it opening.
       const onOrb =
         this.#closed &&
+        this.#hoverSession &&
         this.#pointer !== null &&
         Math.hypot(this.#pointer.x - host.left - big.x, this.#pointer.y - host.top - big.y) < big.radius + 36;
 
       if (pointing || onOrb) this.#hoverUntil = this.#clock + HOVER_LINGER;
+      if (pointing) this.#hoverSession = true;
 
       if (this.#clock < this.#hoverUntil && !this.#scrubbing) {
         if (!this.#closed) this.#close('scrub', time.currentTime);
@@ -656,7 +689,7 @@ export class ScryVisionElement extends UIElement {
     }
 
     const hovering = this.#hoverMode === 'orb' && hoverable && this.#clock < this.#hoverUntil;
-    const jumping = this.#clock < this.#jumpUntil || (this.#brisk && time.seeking);
+    const jumping = this.#clock < this.#jumpUntil;
 
     if (onBar) {
       if (!this.#closed) this.#close('scrub', time.currentTime);
@@ -779,7 +812,11 @@ export class ScryVisionElement extends UIElement {
 
         const arrived = Math.abs(this.#shown - this.#target) < Math.max(0.2, tileSeconds * 0.3);
 
-        if (!this.#unwrapping && ((this.#frameReady && arrived) || this.#openAge > READY_TIMEOUT)) {
+        // Normally the new frame arrives within a few frames. A slow seek keeps the orb closed, under fog, rather
+        // than opening onto a picture that is not there yet; a very long one opens anyway.
+        const overdue = this.#openAge > (time.seeking ? READY_TIMEOUT * 5 : READY_TIMEOUT);
+
+        if (!this.#unwrapping && ((this.#frameReady && arrived) || overdue)) {
           // The frame is on screen underneath: take it as the exact picture and lay it back down.
           this.#unwrapping = true;
           this.#capture(time.currentTime);
@@ -852,7 +889,7 @@ export class ScryVisionElement extends UIElement {
     this.#drawArc(host, big, pointerTime, dragging);
 
     if (visible || held || engine.pending > 0 || playback?.waiting) this.#frame = requestAnimationFrame(this.#tick);
-  };
+  }
 
   /** The curved bar exists while the big orb does; at wrap 0 it lies exactly on the straight one. */
   #drawArc(host: DOMRect, big: Shape, pointerTime: number, dragging: boolean): void {
@@ -925,6 +962,7 @@ export class ScryVisionElement extends UIElement {
     this.#opening = false;
     this.#unwrapping = false;
     this.#brisk = false;
+    this.#hoverSession = false;
     this.#figure = 'none';
     this.#presence = 0;
     this.#wrap = 0;

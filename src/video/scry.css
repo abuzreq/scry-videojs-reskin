@@ -96,7 +96,7 @@
     }
 
     /* While fog or the ending holds the centre, the glass is drawn for real and the button only carries its icon. */
-    :scope[data-scry-mist] .media-buffering-indicator-spinner-icon {
+    :scope:is([data-scry-mist], [data-scry-wrapped]) :is(.media-buffering-indicator-spinner-icon, .media-buffering-indicator-backdrop) {
       visibility: hidden;
     }
 

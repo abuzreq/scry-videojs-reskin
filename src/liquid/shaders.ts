@@ -337,7 +337,8 @@ void main() {
   float fringe = 0.022 * lens * pow(rr, 3.0);
   vec2 uvG = mix(frameUv, lensUv(onSphere, rr, 1.0), lens);
   vec3 col;
-  if (fringe > 0.0008) {
+  // Only the outer part of the glass disperses visibly; the middle takes the single, cheaper look.
+  if (fringe > 0.007) {
     vec2 uvR = mix(frameUv, lensUv(onSphere, rr, 1.0 - fringe), lens);
     vec2 uvB = mix(frameUv, lensUv(onSphere, rr, 1.0 + fringe), lens);
     col = vec3(morph(uvR).r, morph(uvG).g, morph(uvB).b);

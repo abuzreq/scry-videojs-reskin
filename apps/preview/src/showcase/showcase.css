@@ -61,6 +61,39 @@ body {
     0 40px 80px -30px rgb(0 0 0 / 0.8);
 }
 
+.choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: center;
+  width: fit-content;
+  margin: 1.25rem auto 0;
+  padding: 0.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+}
+
+.choice button {
+  padding: 0.4rem 0.95rem;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.875rem;
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.choice button[aria-pressed="true"] {
+  color: var(--page);
+  background: var(--ink);
+}
+
+.choice button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .hint {
   max-width: 34rem;
   margin: 1.5rem auto 0;
