@@ -19,6 +19,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "deploy": "node apps/preview/deploy.mjs",
     "deploy:vercel": "npx --yes vercel@64 build && npx --yes vercel@64 deploy --prebuilt",
     "deploy:netlify": "npx --yes netlify-cli@27 deploy --build",
@@ -42,6 +43,7 @@
     "react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "^5.1.0"
   }
 }

@@ -244,11 +244,6 @@ export class LiquidEngine {
     this.#depthDone = new Uint8Array(count);
   }
 
-  /** Whether `setDepth` has been given this tile. */
-  hasDepth(layer: number): boolean {
-    return this.#depthDone[layer] === 1;
-  }
-
   /**
    * Give one tile its depth map (one byte per pixel from the top row, 0 far and 255 near). Every map must be the same
    * size. Tiles without one are drawn flat, as before.

@@ -1,6 +1,8 @@
 import '../styles/video/scaffold.css';
 import './skin.css';
 import './scry.css';
+import './scry-arc.css';
+import './scry-material.css';
 import '@videojs/html/i18n';
 import '@videojs/html/ui/container';
 import '@videojs/html/ui/poster';

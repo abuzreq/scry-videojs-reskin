@@ -56,14 +56,24 @@ ONNX runtime from jsDelivr, once, cached by the browser. It is off by default, a
 
 ## Layout
 
-- `src/video/` — the skin: markup (`skin.html`), elements and icons (`skin.ts`, `icons/`), the typeface (`fonts/`), styles (`skin.css` for
-  structure, `scry.css` for the look), `scry-vision.ts`, the element that draws the orb, and `scry-arc.ts`, the curved timeline.
+- `src/video/` — the skin.
+  - `skin.html`, `skin.ts`: the markup, and the elements and icons it registers. `icons/`, `fonts/`.
+  - Styles: `skin.css` for structure; `scry.css` for the shapes, `scry-arc.css` for the curved bar and
+    `scry-material.css` for what it is all made of (the seeing-stone, and clear glass as the variant).
+  - `scry-vision.ts`: the element that conducts the orb. Each frame it reads the player and the pointer, decides
+    where the picture is heading and which figure is on screen, and describes that to the engine.
+  - `scry-arc.ts`: the curved timeline.
+  - `vision/`: the parts of the orb's behaviour that stand on their own. `journey.ts` is the wrap's state machine
+    (closing, waiting for the new frame, opening); `spring.ts` moves the picture; `geometry.ts` is layout
+    arithmetic; `picture-drag.ts` recognises sideways drags; `exact-frame.ts` holds true frames;
+    `depth-tier.ts` runs the optional depth pass; `material.ts` and `captions.ts` dress the player.
 - `src/liquid/` — the engine, with no dependency on Video.js: `engine.ts`, `shaders.ts`, `storyboard.ts`, and the
   optional `depth.ts` and `depth.worker.ts`.
 - `design/spec.md` — the design.
 - `apps/preview/` — the showcase page (`index.html`), the Video.js workbench (`workbench.html`) and the frame it
   previews (`preview.html`).
 - `apps/preview/lab.html` — development page that renders contact sheets of the morph (`npm run dev`, then `/lab.html`).
+- `npm test` runs the unit tests for the parts that need no browser (`*.test.ts` beside what they test).
 
 By [Ahmed Abuzuraiq](https://abuzreq.com/). Licensed under the Apache License, Version 2.0.
 

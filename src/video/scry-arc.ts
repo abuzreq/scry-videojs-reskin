@@ -1,3 +1,5 @@
+import { formatOffset, formatTime } from './vision/time-format';
+
 /**
  * The timeline as a line that can bend.
  *
@@ -55,22 +57,6 @@ const GAP = 13;
 const UNITS = 1000;
 
 let instances = 0;
-
-export function formatTime(seconds: number): string {
-  const whole = Math.max(0, Math.floor(seconds));
-  const hours = Math.floor(whole / 3600);
-  const minutes = Math.floor((whole % 3600) / 60);
-  const rest = String(whole % 60).padStart(2, '0');
-
-  return `${hours ? `${hours}:${String(minutes).padStart(2, '0')}` : minutes}:${rest}`;
-}
-
-/** "+1:24" or "−0:30"; empty for less than a second. */
-export function formatOffset(seconds: number): string {
-  if (Math.abs(seconds) < 1) return '';
-
-  return `${seconds > 0 ? '+' : '−'}${formatTime(Math.round(Math.abs(seconds)))}`;
-}
 
 function svg<K extends keyof SVGElementTagNameMap>(name: K, attributes: Record<string, string> = {}) {
   const element = document.createElementNS(SVG, name);

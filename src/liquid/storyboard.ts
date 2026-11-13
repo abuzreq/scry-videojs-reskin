@@ -5,8 +5,9 @@ export interface StoryboardCue {
   text: string;
 }
 
+/** A storyboard as its track describes it: one sprite image and where each moment's tile sits on it. */
 export interface Storyboard {
-  image: HTMLImageElement;
+  url: string;
   tiles: Tile[];
 }
 
@@ -14,7 +15,7 @@ export interface Storyboard {
  * Read storyboard cues (`sprite.jpg#xywh=x,y,w,h`, the format Mux and most packagers emit) into tiles. Only tiles on
  * the first sprite are kept: one sprite is the common case, and it keeps the engine to a single texture upload.
  */
-export function tilesFromCues(cues: readonly StoryboardCue[], base: string): { url: string; tiles: Tile[] } | null {
+export function tilesFromCues(cues: readonly StoryboardCue[], base: string): Storyboard | null {
   let url: string | null = null;
   const tiles: Tile[] = [];
 

@@ -1,0 +1,144 @@
+/*
+ * Scry: the curved bar. While the picture is an orb the timeline curls onto its lower rim; scry-arc.ts draws it
+ * as one SVG and these rules dress it. Material colours for the knob are in scry-material.css.
+ */
+
+@layer components {
+  @scope (.media-skin[data-theme="scaffold"][data-preset="video"]) {
+    /* ---------- The curved bar ---------- */
+
+    .scry-arc {
+      pointer-events: none;
+      display: none;
+      position: absolute;
+      inset: 0;
+    }
+
+    .scry-arc[data-visible] {
+      display: block;
+    }
+
+    .scry-arc-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      inset: 0;
+      overflow: visible;
+    }
+
+    .scry-arc-mask {
+      stroke: white;
+    }
+
+    .scry-arc-track {
+      stroke: rgb(255 255 255 / 0.3);
+      stroke-linecap: round;
+    }
+
+    .scry-arc-buffer {
+      stroke: rgb(255 255 255 / 0.32);
+    }
+
+    .scry-arc-fill {
+      stroke: var(--media-accent);
+      filter: drop-shadow(0 0 4px rgb(255 255 255 / 0.45));
+    }
+
+    .scry-arc-hit {
+      cursor: pointer;
+      stroke: transparent;
+      stroke-width: 30;
+      stroke-linecap: round;
+    }
+
+    .scry-arc-knob {
+      filter: drop-shadow(0 2px 5px rgb(0 0 0 / 0.55)) drop-shadow(0 0 6px rgb(255 255 255 / 0.3));
+    }
+
+    .scry-arc-ring {
+      fill: none;
+      stroke: var(--media-ring);
+      stroke-width: 2;
+    }
+
+    .scry-arc-time,
+    .scry-arc-plate,
+    .scry-arc-title {
+      white-space: nowrap;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .scry-arc-time {
+      color: var(--scry-ink-soft);
+      font-size: calc(var(--media-spacing) * 3);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.03em;
+    }
+
+    .scry-arc-plate {
+      gap: calc(var(--media-spacing) * 1.5);
+      padding: calc(var(--media-spacing) * 0.75) calc(var(--media-spacing) * 2.25);
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      background-color: var(--media-popover);
+      box-shadow: var(--media-shadow-surface), var(--media-shadow-surface-inset);
+      border-radius: 999px;
+      display: flex;
+    }
+
+    .scry-arc-offset {
+      color: var(--scry-ink-soft);
+      font-weight: 400;
+    }
+
+    .scry-arc-offset:empty {
+      display: none;
+    }
+
+    .scry-arc-title {
+      font-family: var(--scry-serif);
+      font-size: calc(var(--media-spacing) * 4.25);
+      font-style: italic;
+      letter-spacing: 0;
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @container media-root (width < 28rem) {
+      .scry-arc-title {
+        display: none;
+      }
+    }
+
+    /* The arc is drawn over the orb's own dark stage, which system colours do not repaint, so it keeps its ink. */
+    @media (forced-colors: active) {
+      .scry-arc {
+        forced-color-adjust: none;
+        color: white;
+      }
+
+      .scry-arc-fill {
+        stroke: white;
+        filter: none;
+      }
+
+      .scry-arc-track {
+        stroke: rgb(255 255 255 / 0.45);
+      }
+
+      .scry-arc-knob {
+        fill: white;
+        filter: none;
+      }
+
+      .scry-arc-plate {
+        border: 1px solid white;
+      }
+    }
+  }
+}

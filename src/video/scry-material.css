@@ -1,0 +1,351 @@
+/*
+ * Scry: material. The shapes are in scry.css and scry-arc.css; this file says what they are made of.
+ */
+
+/* The seeing-stone's display face: Cinzel, Roman capitals, under the SIL Open Font License (see fonts/OFL.txt). */
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/cinzel-latin-500-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@layer components {
+  @scope (.media-skin[data-theme="scaffold"][data-preset="video"]) {
+    /* ---------- Material ----------
+       The orb is a dark seeing-stone by default: black glass with a fire in it. The rest of the skin takes its
+       cue from that: warm ink, old gold for what is played, a dark bead with an ember edge, inscriptional serif
+       capitals for names. `stone="glass"` on <scry-vision> keeps everything clear and cool instead. */
+
+    .scry-arc-bead-glint {
+      stop-color: #ffffff;
+    }
+
+    .scry-arc-bead-body {
+      stop-color: #eef2ff;
+    }
+
+    .scry-arc-bead-shade {
+      stop-color: #bfcdea;
+    }
+
+    .scry-arc-bead-edge {
+      stop-color: #ffffff;
+    }
+
+    :scope[data-scry-stone="obsidian"] {
+      --media-foreground: #f6eedf;
+      --media-popover-foreground: #f6eedf;
+      --media-default-accent-color: #e3c078;
+      --media-popover: rgb(20 14 10 / 0.8);
+      --media-ring: #fff3d6;
+      --media-button-highlight: rgb(227 192 120 / 0.16);
+      --media-shadow-surface-inset: inset 0 1px 0 0 rgb(227 192 120 / 0.2), inset 0 0 0 1px rgb(227 192 120 / 0.12);
+      --media-shadow-thumb: 0 0 0 1px rgb(232 160 72 / 0.75), 0 0 10px rgb(255 140 40 / 0.5), 0 2px 8px rgb(0 0 0 / 0.6);
+      --scry-ink-soft: rgb(246 238 223 / 0.72);
+      --scry-ember: rgb(255 140 40);
+      --scry-stone-bead:
+        radial-gradient(circle at 34% 28%, rgb(150 126 98 / 0.9) 0 9%, transparent 40%),
+        radial-gradient(circle at 50% 50%, #1b1410 0 52%, #050302 78%, #e8a048 100%);
+    }
+
+    :scope[data-scry-stone="obsidian"] :is(.media-time-slider-thumb, .media-volume-slider-thumb) {
+      background: var(--scry-stone-bead);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-time-slider-fill {
+      box-shadow: 0 0 8px rgb(255 170 70 / 0.45);
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-fill {
+      filter: drop-shadow(0 0 4px rgb(255 170 70 / 0.5));
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-knob {
+      filter: drop-shadow(0 0 1px rgb(232 160 72)) drop-shadow(0 0 6px rgb(255 140 40 / 0.6)) drop-shadow(0 2px 5px rgb(0 0 0 / 0.6));
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-bead-glint {
+      stop-color: #8f7a62;
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-bead-body {
+      stop-color: #1b1410;
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-bead-shade {
+      stop-color: #050302;
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-bead-edge {
+      stop-color: #e8a048;
+    }
+
+    /* Capitals run wider than the italic they replace, so the caption under the small orb gets more room. */
+    :scope[data-scry-stone="obsidian"] .scry-caption {
+      max-width: max(var(--scry-orb-size), calc(var(--media-spacing) * 66));
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-title {
+      color: var(--media-accent);
+    }
+
+    /* The play control at rest is the stone itself, asleep: black, with a little fire low inside. */
+    @media (forced-colors: none) {
+      :scope[data-scry-stone="obsidian"]:not([data-scry-ended]) .video-controls-center-play,
+      :scope[data-scry-stone="obsidian"]:not([data-scry-ended]) .video-controls-center-play:hover,
+      :scope[data-scry-stone="obsidian"]:not([data-scry-ended]) .video-controls-center-play:focus-visible {
+        background:
+          radial-gradient(50% 32% at 34% 20%, rgb(255 236 210 / 0.26), transparent 72%),
+          radial-gradient(70% 46% at 50% 100%, rgb(255 130 30 / 0.5), transparent 70%),
+          radial-gradient(closest-side, rgb(14 10 8 / 0.88) 45%, rgb(0 0 0 / 0.94) 86%, rgb(232 160 72 / 0.85) 100%) !important;
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+        box-shadow:
+          inset 0 0 0 1px rgb(232 160 72 / 0.5),
+          0 0 22px rgb(255 130 30 / 0.28),
+          0 16px 36px -12px rgb(0 0 0 / 0.7);
+      }
+
+      :scope[data-scry-stone="obsidian"] .video-controls-center-play:focus-visible {
+        box-shadow:
+          inset 0 0 0 1px rgb(232 160 72 / 0.5),
+          0 0 0 4px rgb(0 0 0 / 0.65),
+          0 0 22px rgb(255 130 30 / 0.28);
+      }
+
+      :scope[data-scry-stone="obsidian"] .video-controls-center-play-icon {
+        color: var(--media-accent);
+      }
+
+      /* The still thumbnail's frame, where the orb itself cannot be drawn, is the same stone. */
+      :scope[data-scry-stone="obsidian"] .scry-orb::after {
+        background:
+          radial-gradient(50% 32% at 34% 20%, rgb(255 236 210 / 0.22), transparent 72%),
+          radial-gradient(closest-side, transparent 38%, rgb(0 0 0 / 0.72) 86%, rgb(232 160 72 / 0.7) 100%);
+        box-shadow: inset 0 0 0 1px rgb(232 160 72 / 0.5);
+      }
+    }
+
+    /* ---------- The seeing-stone, everywhere else ----------
+       Every surface that floats over the picture is a small dark tablet with a hairline of gold. Names are set in
+       Roman capitals; what you read off (times, values) stays in plain numerals. */
+
+    :scope[data-scry-stone="obsidian"] {
+      --scry-display: "Cinzel", var(--scry-serif);
+      /* A book serif for reading: capitals are for names, not for sentences. */
+      --scry-caption-font: var(--scry-serif);
+      --scry-caption-color: #f6eedf;
+      --scry-caption-plate: rgb(16 10 6 / 0.76);
+      --scry-sans: var(--media-font-family, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+      --scry-gold-line: color-mix(in oklab, var(--media-accent) 42%, transparent);
+      --scry-gold-wash: color-mix(in oklab, var(--media-accent) 15%, transparent);
+      --scry-flame: linear-gradient(to top, #7a1f08, #ff7a1a 45%, #ffd27a);
+      --media-popup-radius: calc(var(--media-spacing) * 1.5);
+      --media-menu-item-radius: calc(var(--media-spacing) * 0.75);
+      --media-dialog-radius: calc(var(--media-spacing) * 2);
+      --media-button-highlight: var(--scry-gold-wash);
+      --media-shadow-surface-inset: inset 0 0 0 1px var(--scry-gold-line), inset 0 1px 0 0 rgb(255 240 210 / 0.08);
+    }
+
+    :scope[data-scry-stone="obsidian"] :is(.media-title, .media-time-slider-chapter-title, .scry-arc-title) {
+      font-family: var(--scry-display);
+      font-style: normal;
+      font-variant-caps: normal;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+    }
+
+    /* Thin capitals need more help than a sans title does over a bright sky. */
+    :scope[data-scry-stone="obsidian"] .media-title {
+      font-size: calc(var(--media-spacing) * 3.5);
+      text-shadow:
+        0 0 2px rgb(0 0 0 / 0.75),
+        0 1px 4px rgb(0 0 0 / 0.6);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-time-slider-chapter-title {
+      font-size: calc(var(--media-spacing) * 3.25);
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-title {
+      font-size: calc(var(--media-spacing) * 3.75);
+    }
+
+    :scope[data-scry-stone="obsidian"] .video-controls-backdrop {
+      background-image:
+        linear-gradient(
+          to top,
+          rgb(12 7 3 / 0.7),
+          rgb(12 7 3 / 0.48) 12%,
+          rgb(12 7 3 / 0.2) 28%,
+          rgb(12 7 3 / 0.05) 42%,
+          transparent 52%
+        ),
+        linear-gradient(to bottom, rgb(12 7 3 / 0.66), rgb(12 7 3 / 0.3) 14%, rgb(12 7 3 / 0.08) 24%, transparent 32%);
+    }
+
+    /* An engraved frame: four corner marks that come and go with the controls. */
+    :scope[data-scry-stone="obsidian"]::after {
+      --mark: calc(var(--media-spacing) * 4);
+      --cut: 1.5px;
+      --ink: color-mix(in oklab, var(--media-accent) 62%, transparent);
+      content: "";
+      pointer-events: none;
+      z-index: 5;
+      background:
+        linear-gradient(var(--ink) 0 0) top left / var(--mark) var(--cut) no-repeat,
+        linear-gradient(var(--ink) 0 0) top left / var(--cut) var(--mark) no-repeat,
+        linear-gradient(var(--ink) 0 0) top right / var(--mark) var(--cut) no-repeat,
+        linear-gradient(var(--ink) 0 0) top right / var(--cut) var(--mark) no-repeat,
+        linear-gradient(var(--ink) 0 0) bottom left / var(--mark) var(--cut) no-repeat,
+        linear-gradient(var(--ink) 0 0) bottom left / var(--cut) var(--mark) no-repeat,
+        linear-gradient(var(--ink) 0 0) bottom right / var(--mark) var(--cut) no-repeat,
+        linear-gradient(var(--ink) 0 0) bottom right / var(--cut) var(--mark) no-repeat;
+      opacity: 0;
+      position: absolute;
+      inset: calc(var(--media-spacing) * 1.75);
+      transition: opacity var(--media-duration-controls) ease-out;
+    }
+
+    :scope[data-scry-stone="obsidian"][data-controls-visible]::after {
+      opacity: 1;
+    }
+
+    /* The mark between the two times is a cut diamond. */
+    @container media-root (width >= 28rem) {
+      :scope[data-scry-stone="obsidian"] .media-time-separator {
+        width: 5px;
+        height: 5px;
+        background-color: var(--media-accent);
+        font-size: 0;
+        flex-shrink: 0;
+        margin-inline: 3px;
+        display: inline-block;
+        rotate: 45deg;
+      }
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-time-slider-track::before {
+      background-color: rgb(246 238 223 / 0.28);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-captions-button[data-active]::after {
+      width: 5px;
+      height: 5px;
+      background-color: var(--media-accent);
+      border-radius: 0;
+      rotate: 45deg;
+    }
+
+    /* Tablets: menus, tooltips, plates, indicators, the dialog. */
+    :scope[data-scry-stone="obsidian"] :is(.scry-caption, .scry-arc-plate, .media-indicator, .media-seek-indicator) {
+      border-radius: var(--media-popup-radius);
+    }
+
+    :scope[data-scry-stone="obsidian"] .scry-arc-plate {
+      box-shadow: var(--media-shadow-surface), var(--media-shadow-surface-inset);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-tooltip-popup {
+      border-radius: calc(var(--media-spacing) * 1);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-tooltip-shortcut {
+      color: var(--media-accent);
+      background-color: transparent;
+      box-shadow: inset 0 0 0 1px var(--scry-gold-line);
+      border-radius: 2px;
+    }
+
+    :scope[data-scry-stone="obsidian"] :is(.media-menu-item, .media-menu-back-item) {
+      font-family: var(--scry-display);
+      font-size: calc(var(--media-spacing) * 3);
+      font-weight: 500;
+      letter-spacing: 0.07em;
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-menu-hint {
+      font-family: var(--scry-sans);
+      font-size: calc(var(--media-spacing) * 3.25);
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+
+    /* The row under the pointer or the keys takes a wash of gold and a gold edge. */
+    :scope[data-scry-stone="obsidian"] :is(.media-menu-item, .media-menu-back-item, .media-menu-radio-item)[data-highlighted] {
+      background-color: var(--scry-gold-wash);
+      box-shadow: inset 2px 0 0 var(--media-accent);
+    }
+
+    :scope[data-scry-stone="obsidian"]
+      :is(.media-menu-item, .media-menu-back-item, .media-menu-radio-item)[data-highlighted]:where(
+        :dir(rtl),
+        [dir="rtl"],
+        [dir="rtl"] *
+      ) {
+      box-shadow: inset -2px 0 0 var(--media-accent);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-menu-radio-item[aria-checked="true"] .media-menu-radio-icon {
+      color: var(--media-accent);
+      opacity: 1;
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-menu-separator {
+      background: linear-gradient(to right, transparent, var(--scry-gold-line) 18% 82%, transparent);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-menu-badge {
+      background-color: transparent;
+      box-shadow: inset 0 0 0 1px var(--scry-gold-line);
+      border-radius: 2px;
+    }
+
+    /* Volume is a flame: the higher it stands, the hotter it burns. */
+    :scope[data-scry-stone="obsidian"] .media-volume-popover-popup {
+      border-radius: var(--media-popup-radius);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-volume-slider-track {
+      width: 3px;
+      background-color: rgb(246 238 223 / 0.14);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-volume-slider-fill {
+      background: var(--scry-flame);
+      box-shadow: 0 0 10px rgb(255 130 30 / 0.55);
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-dialog-title {
+      font-family: var(--scry-display);
+      letter-spacing: 0.07em;
+    }
+
+    :scope[data-scry-stone="obsidian"] .media-dialog-close {
+      font-family: var(--scry-display);
+      letter-spacing: 0.08em;
+      border-color: var(--scry-gold-line) !important;
+      border-radius: var(--media-popup-radius);
+    }
+
+    @media (forced-colors: active) {
+      :scope[data-scry-stone="obsidian"]::after {
+        display: none;
+      }
+
+      :scope[data-scry-stone="obsidian"] .media-time-separator {
+        background-color: canvastext;
+      }
+
+      :scope[data-scry-stone="obsidian"] .media-volume-slider-fill {
+        background: highlight;
+        box-shadow: none;
+      }
+    }
+  }
+}
