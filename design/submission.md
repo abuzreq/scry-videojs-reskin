@@ -5,7 +5,9 @@ on Contra (November 2026). This file holds the text and images for the entry.
 
 ## Description
 
-Scry turns the video itself into a seeing-stone. It is an ordinary rectangle until you move through time: drag the
+Scry turns the video itself into a seeing-stone. The player opens as the stone, with the play control at its
+centre and embers rising through it; press play and it unfolds into the picture. From then on it is an ordinary
+rectangle until you move through time: drag the
 timeline, drag sideways on the picture, or skip with the keys, and the picture rolls up into an orb of black glass.
 Inside it the video plays from one moment to the next instead of cutting, a fire in the stone brightens the harder
 you drive it, and the timeline bends onto the orb's rim, carrying the chapters, the times and the knob. Arrive, and

@@ -14,6 +14,8 @@ November 2026.
 
 ## What it does
 
+- **It opens as the stone.** Before the first play the poster frame waits inside an orb, with the play control
+  at its centre and embers rising through it. Press play and it opens into the picture.
 - **Scrubbing wraps the picture.** Drag the timeline, or drag left and right on the picture itself. The video
   becomes the stone and shows the footage moving as you go.
 - **Hovering peeks.** Rest the pointer on the timeline and a small stone shows that moment. The video is left
@@ -112,8 +114,8 @@ default, and if anything fails the picture simply stays flat.
 - Every control is a Video.js component, so roles, labels, keyboard handling and translations are the library's.
   The time slider stays in the document as the real control; the curved bar is a picture of it.
 - Tab order follows visual order, and every focusable part has a visible focus ring.
-- With reduced motion turned on, without WebGL2, or after a lost graphics context, the stone never appears. Seeks
-  cut, the timeline preview is a still thumbnail and buffering shows a spinner.
+- With reduced motion turned on, without WebGL2, or after a lost graphics context, the stone never appears. The
+  player opens on its poster, seeks cut, the timeline preview is a still thumbnail and buffering shows a spinner.
 - Without a storyboard the stone still wraps, holding the frame it started from under smoke until the new one
   arrives.
 - Forced colours and increased contrast replace glass and gradients with solid surfaces and borders.

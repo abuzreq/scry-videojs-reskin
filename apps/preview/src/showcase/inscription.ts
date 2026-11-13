@@ -7,6 +7,14 @@
  *
  * Each line is a single SVG path, laid out twice end to end so it can scroll forever by half its own width. The
  * scrolling is a CSS transform on the whole line, so the browser draws the letters once and only moves them.
+ *
+ * The letters are not always there. Each line kindles from one end to the other, white-hot, cools to gold, fades
+ * to nothing and after a while kindles again: writing that only shows when the metal is hot. Every line is drawn
+ * twice, once hot (pale, with an ember glow drawn into it) and once cooled to gold, and the stylesheet fades between
+ * the two. A wipe uncovers the line from its start, with a small flame riding its front.
+ *
+ * Nothing here is animated except position and opacity, which browsers can do without redrawing anything. That
+ * keeps the ornament from competing with the player for the graphics card.
  */
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -395,57 +403,84 @@ function write(length: number, random: () => number): { d: string; length: numbe
   return { d, length: x };
 }
 
-let gradients = 0;
+export interface InscriptionOptions {
+  /** Picks the text: the same seed always writes the same line. */
+  seed: number;
+  /** The height of a letter's body, in CSS pixels. */
+  size: number;
+  /** How long the line takes to drift past once, in seconds. */
+  drift: number;
+  /** Send it the other way. */
+  reverse?: boolean;
+  /** How long after the page loads this line first kindles, in seconds. */
+  delay: number;
+  /** The longest stretch of the line that can be on screen at once, in CSS pixels. */
+  length: number;
+}
 
-/**
- * Fill `host` with one drifting line of the script. `size` is the height of a letter's body in CSS pixels,
- * `seconds` how long the line takes to pass once, and `reverse` sends it the other way.
- */
-export function inscribe(host: HTMLElement, options: { seed: number; size: number; seconds: number; reverse?: boolean }): void {
-  const scale = options.size / BASELINE;
-  // Long enough to outrun any screen, so the join never shows.
-  const { d, length } = write(2600 / scale, seeded(options.seed));
-  const svg = document.createElementNS(SVG, 'svg');
-  const path = document.createElementNS(SVG, 'path');
-  const gradient = document.createElementNS(SVG, 'linearGradient');
-  const id = `inscription-ink-${gradients++}`;
+function svgElement<K extends keyof SVGElementTagNameMap>(name: K, attributes: Record<string, string>): SVGElementTagNameMap[K] {
+  const element = document.createElementNS(SVG, name);
 
-  // Along the line the ink warms from gold to ember and back, as if lit unevenly from behind.
-  gradient.id = id;
-  gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
-  gradient.setAttribute('x1', '0');
-  gradient.setAttribute('x2', String(n(length / 4)));
-  gradient.setAttribute('spreadMethod', 'reflect');
+  for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
 
-  for (const [offset, name] of [
-    ['0', 'gold'],
-    ['0.7', 'gold'],
-    ['1', 'ember'],
-  ] as const) {
-    const stop = document.createElementNS(SVG, 'stop');
+  return element;
+}
 
-    stop.setAttribute('offset', offset);
-    stop.setAttribute('class', `inscription-${name}`);
-    gradient.append(stop);
+/** One drawing of a line: the same letters, stroked however `strokes` says, widest first. */
+function drawing(d: string, length: number, scale: number, strokes: Record<string, string>[]): SVGSVGElement {
+  const svg = svgElement('svg', {
+    viewBox: `0 ${TOP} ${n(length * 2)} ${HEIGHT}`,
+    width: String(Math.round(length * 2 * scale)),
+    height: String(Math.round(HEIGHT * scale)),
+    'aria-hidden': 'true',
+    focusable: 'false',
+  });
+
+  for (const stroke of strokes) {
+    svg.append(svgElement('path', { d, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', ...stroke }));
   }
 
-  path.setAttribute('d', d);
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke', `url(#${id})`);
-  path.setAttribute('stroke-width', '0.5');
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-
-  svg.setAttribute('viewBox', `0 ${TOP} ${n(length * 2)} ${HEIGHT}`);
-  svg.setAttribute('width', String(Math.round(length * 2 * scale)));
-  svg.setAttribute('height', String(Math.round(HEIGHT * scale)));
-  svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('focusable', 'false');
   svg.classList.add('inscription-line');
-  svg.style.setProperty('--inscription-seconds', `${options.seconds}s`);
 
-  if (options.reverse) svg.dataset.reverse = '';
+  return svg;
+}
 
-  svg.append(gradient, path);
-  host.append(svg);
+const element = (className: string, ...children: Node[]): HTMLDivElement => {
+  const div = document.createElement('div');
+
+  div.className = className;
+  div.append(...children);
+
+  return div;
+};
+
+/** Add one line of the script to `host`. */
+export function inscribe(host: HTMLElement, options: InscriptionOptions): void {
+  const scale = options.size / BASELINE;
+  // Longer than what can be seen of it, so the join never shows.
+  const { d, length } = write(options.length / scale, seeded(options.seed));
+
+  // Hot: a pale core over two soft ember strokes that stand in for a glow.
+  const hot = drawing(d, length, scale, [
+    { class: 'inscription-glow', 'stroke-width': '3.2', 'stroke-opacity': '0.16' },
+    { class: 'inscription-glow', 'stroke-width': '1.7', 'stroke-opacity': '0.3' },
+    { class: 'inscription-core', 'stroke-width': '0.55' },
+  ]);
+  const gold = drawing(d, length, scale, [{ class: 'inscription-gold', 'stroke-width': '0.5' }]);
+
+  hot.classList.add('inscription-hot');
+  gold.classList.add('inscription-cooled');
+
+  const line = element(
+    'inscription',
+    element('inscription-wipe', element('inscription-hold', hot, gold)),
+    element('inscription-flame')
+  );
+
+  line.style.setProperty('--inscription-delay', `${options.delay}s`);
+  line.style.setProperty('--inscription-drift', `${options.drift}s`);
+
+  if (options.reverse) line.dataset.reverse = '';
+
+  host.append(line);
 }

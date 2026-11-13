@@ -71,6 +71,19 @@
       touch-action: pan-y;
     }
 
+    /* ---------- Before the first play: the player waits as the stone ---------- */
+
+    /* The poster is shown inside the stone, so the flat one stays out of sight. scry-vision.ts takes this
+       attribute away again if the stone cannot be drawn. */
+    :scope[data-scry-start] .media-poster {
+      opacity: 0;
+    }
+
+    /* Resting on the timeline looks ahead in the stone itself; the small one is not needed. */
+    :scope[data-scry-start="orb"] .scry-orb {
+      display: none;
+    }
+
     /* ---------- Wrapped: the picture is the orb, and everything else steps back ---------- */
 
     .video-controls-row,

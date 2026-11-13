@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bigShape, centreCircle, pictureRect } from './geometry';
+import { bigShape, centreCircle, pictureRect, startShape } from './geometry';
 
 describe('bigShape', () => {
   it.each([
@@ -44,5 +44,22 @@ describe('centreCircle', () => {
   it('sits higher on narrow players, where the skin lifts its centre button', () => {
     expect(centreCircle({ width: 400, height: 300 }).y).toBe(120);
     expect(centreCircle({ width: 1000, height: 600 }).y).toBe(300);
+  });
+});
+
+describe('startShape', () => {
+  it.each([
+    ['a desktop player', 936, 526],
+    ['a phone', 358, 201],
+    ['a tall player', 400, 700],
+  ])('centres the opening stone on the play control and keeps it clear of the controls on %s', (_, width, height) => {
+    const centre = centreCircle({ width, height });
+    const stone = startShape({ width, height }, centre);
+
+    expect(stone.x).toBe(centre.x);
+    expect(stone.y).toBe(centre.y);
+    expect(stone.radius).toBeGreaterThan(centre.radius);
+    expect(stone.y - stone.radius).toBeGreaterThanOrEqual(0);
+    expect(stone.y + stone.radius).toBeLessThanOrEqual(height - 56);
   });
 });

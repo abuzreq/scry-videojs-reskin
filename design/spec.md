@@ -58,6 +58,9 @@ smaller and its caption is the time alone. Under 21rem the captions button goes 
 
 **When it appears**
 
+- Before the first play the player waits as the stone: the poster's moment held in an orb around the play control,
+  embers rising through it, the stage dark. Resting on the timeline looks ahead inside it. Play opens it, briskly,
+  onto the first frame. If the stone cannot be drawn within five seconds the ordinary poster is shown instead.
 - Dragging the timeline, dragging sideways on the picture, or anything that seeks by more than a couple of seconds
   (keys, double-tap, a replay) wraps the picture into the orb. Jumps do it briskly: about 180ms in, 240ms out.
 - A click on the timeline is a jump, not a scrub: one complete brisk wrap to the new moment, or a plain cut when the

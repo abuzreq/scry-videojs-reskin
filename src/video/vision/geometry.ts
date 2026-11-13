@@ -37,6 +37,16 @@ export function bigShape(host: Box): Shape {
   return { x: host.width / 2, y, radius, wide: 1, stage: 1 };
 }
 
+/**
+ * The stone the player opens as, before the first play: centred on the play control at `centre`, as large as fits
+ * between the top of the player and the row of controls along the bottom.
+ */
+export function startShape(host: Box, centre: Circle): Shape {
+  const room = Math.min(host.height * 0.36, host.width * 0.3, centre.y - 12, host.height - centre.y - 56);
+
+  return { x: centre.x, y: centre.y, radius: Math.max(centre.radius * 1.6, room), wide: 1, stage: 1 };
+}
+
 /** An element's inscribed circle, in CSS pixels relative to `host`; null when the element is not laid out. */
 export function circleOf(element: Element | null, host: DOMRect): Circle | null {
   const rect = element?.getBoundingClientRect();

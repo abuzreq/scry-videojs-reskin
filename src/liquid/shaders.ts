@@ -227,6 +227,7 @@ void main() {
  * - uWide chooses the lens: 0 is a tight look at the middle of the picture (the small orb on the timeline), 1 takes
  *   in nearly the whole frame, squeezed toward the rim (the big orb).
  * - uMist fills the glass with slow fog, for waiting.
+ * - uSparks sends embers rising through clear glass, with no smoke: the stone awake and waiting to be used.
  * - uStone chooses the material: 0 clear glass, 1 a dark seeing-stone with a fire in it that uHeat stokes.
  * - uReveal hands over to whatever is underneath the canvas.
  *
@@ -241,6 +242,7 @@ uniform float uWrap;
 uniform float uStage;
 uniform float uWide;
 uniform float uMist;
+uniform float uSparks;
 uniform float uClock;
 uniform float uPresence;
 uniform float uReveal;
@@ -403,6 +405,8 @@ void main() {
     col = mix(col, mist * (0.5 + 0.5 * f), uMist * smoothstep(0.15, 0.85, f + 0.25) * 0.92);
     col += EMBER * sparks(onSphere) * (0.35 + 0.65 * f) * uMist * uStone * 1.8;
   }
+
+  if (uSparks > 0.001) col += EMBER * sparks(onSphere) * uSparks * 1.6;
 
   vec2 h = (onSphere - vec2(-0.36, -0.5)) / vec2(0.46, 0.24);
   float sheen = exp(-dot(h, h) * 1.6) * 0.34;

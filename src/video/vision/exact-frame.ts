@@ -89,3 +89,10 @@ export class ExactFrames {
     image.src = `${this.#stills}?time=${rounded}&width=${WIDTH}`;
   }
 }
+
+/** The moment a still image shows, where its address says so (Mux thumbnails carry `?time=`); otherwise null. */
+export function stillTime(url: string): number | null {
+  const match = /[?&]time=(\d+(?:\.\d+)?)/.exec(url);
+
+  return match ? Number(match[1]) : null;
+}

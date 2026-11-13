@@ -15,8 +15,17 @@ import { loadSprite, tilesFromCues } from '../liquid/storyboard';
 import { ArcBar, type ArcChapter, type ArcScrub } from './scry-arc';
 import { CaptionStyle } from './vision/captions';
 import { DepthTier, depthDevice } from './vision/depth-tier';
-import { ExactFrames } from './vision/exact-frame';
-import { bigShape, centreCircle, circleOf, findVideo, pictureRect, type Shape } from './vision/geometry';
+import { ExactFrames, stillTime } from './vision/exact-frame';
+import {
+  bigShape,
+  type Circle,
+  centreCircle,
+  circleOf,
+  findVideo,
+  pictureRect,
+  type Shape,
+  startShape,
+} from './vision/geometry';
 import { FrameWatch, Journey } from './vision/journey';
 import { dressMaterial, type Stone } from './vision/material';
 import { PictureDrag } from './vision/picture-drag';
@@ -44,11 +53,13 @@ const DRAG_SHARE = 1 / 3;
 const DRAG_MIN_SECONDS = 45;
 /** Where hovering travels, how long the travelling goes on after the pointer leaves. */
 const HOVER_LINGER = 0.22;
+/** If the stone has not been drawn this long after the page loads, the poster is shown the ordinary way instead. */
+const START_TIMEOUT = 5000;
 /** The pointer has to rest this long before the exact frame is fetched. */
 const DWELL_SECONDS = 0.16;
 
 /** What the canvas is drawing. One thing at a time. */
-type Figure = 'none' | 'peek' | 'big' | 'mist' | 'end';
+type Figure = 'none' | 'start' | 'peek' | 'big' | 'mist' | 'end';
 
 /** The timeline's pointer state, read once per frame from what the slider reflects. */
 interface Bar {
@@ -60,7 +71,7 @@ interface Bar {
 }
 
 /** The container attributes this element owns, all prefixed `data-scry-`. The stylesheets select on them. */
-const CONTAINER_STATE = ['gl', 'wrapped', 'flat', 'mist', 'ended', 'quiet', 'depth', 'hover', 'stone'];
+const CONTAINER_STATE = ['gl', 'start', 'wrapped', 'flat', 'mist', 'ended', 'quiet', 'depth', 'hover', 'stone'];
 
 /**
  * The vision layer of the Scry skin: the crystal ball.
@@ -72,6 +83,9 @@ const CONTAINER_STATE = ['gl', 'wrapped', 'flat', 'mist', 'ended', 'quiet', 'dep
  *
  * Merely resting the pointer on the timeline peeks instead: a small orb at the pointer shows that moment and the
  * picture is left alone.
+ *
+ * Before the first play the player waits as the stone: the poster frame held in an orb with the play control at its
+ * centre and embers rising through it. Pressing play opens it into the rectangle.
  *
  * The same glass shows up in the other places the player waits or rests: fog in a small orb while buffering, and
  * the opening frame held in an orb when the video has ended.
@@ -136,6 +150,8 @@ export class ScryVisionElement extends UIElement {
   #arc: ArcBar | null = null;
   #storyboardKey = '';
   #blankTimer = 0;
+  #startTimer = 0;
+  #startCentre: { key: string; circle: Circle } | null = null;
   #exact = new ExactFrames(() => this.#engine);
   #depth = new DepthTier();
   #captions = new CaptionStyle();
@@ -145,6 +161,7 @@ export class ScryVisionElement extends UIElement {
   #shape: Shape = { x: 0, y: 0, radius: 1, wide: 0, stage: 0 };
   #presence = 0;
   #mist = 0;
+  #sparks = 0;
   #heat = 0;
   #detail = 0;
   /** The moment the picture is heading for, and the picture itself on its way there. */
@@ -205,6 +222,7 @@ export class ScryVisionElement extends UIElement {
 
     this.#reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     this.#reducedMotion.addEventListener('change', () => this.#syncMode(), { signal });
+    this.#expectStart(container);
 
     const resize = new ResizeObserver(() => this.#resize());
 
@@ -218,8 +236,10 @@ export class ScryVisionElement extends UIElement {
     this.#disconnect = null;
     cancelAnimationFrame(this.#frame);
     clearTimeout(this.#blankTimer);
+    clearTimeout(this.#startTimer);
     this.#frame = 0;
     this.#blankTimer = 0;
+    this.#startTimer = 0;
     this.#unlock();
     this.#depth.stop();
     this.#engine?.dispose();
@@ -256,12 +276,16 @@ export class ScryVisionElement extends UIElement {
 
     this.#noticeJump(time);
 
+    if (this.#playback.value?.started) this.#container?.removeAttribute('data-scry-start');
+
     // No storyboard after a moment: carry on without one, on the frames the player itself shows.
     if (!this.#engine && !this.#engineFailed && !this.#blankTimer && time.duration > 0) {
       this.#blankTimer = window.setTimeout(() => this.#withoutStoryboard(), 1500);
     }
 
-    if (this.#playback.value?.waiting || this.#playback.value?.ended || this.#figure !== 'none') this.#wake();
+    const playback = this.#playback.value;
+
+    if (playback?.waiting || playback?.ended || !playback?.started || this.#figure !== 'none') this.#wake();
   }
 
   // ---------------------------------------------------------------- setting up
@@ -277,6 +301,22 @@ export class ScryVisionElement extends UIElement {
     observer.observe(this, { attributes: true, attributeFilter: ['stone'] });
     signal.addEventListener('abort', () => observer.disconnect());
     dress();
+  }
+
+  /**
+   * The player opens as the stone, so until the stone is drawn the flat poster is kept out of sight (the stylesheet
+   * hides it while the container carries `data-scry-start`). Where the stone cannot be drawn, or does not turn up in
+   * time, the poster comes back.
+   */
+  #expectStart(container: HTMLElement): void {
+    const possible = typeof WebGL2RenderingContext !== 'undefined' && !this.#reducedMotion?.matches && !this.#flat;
+
+    if (!possible || this.#playback.value?.started) return;
+
+    container.setAttribute('data-scry-start', 'pending');
+    this.#startTimer = window.setTimeout(() => {
+      if (this.#figure !== 'start') container.removeAttribute('data-scry-start');
+    }, START_TIMEOUT);
   }
 
   /** Captions follow the material; see `CaptionStyle` for why this cannot be left to the stylesheet. */
@@ -343,6 +383,7 @@ export class ScryVisionElement extends UIElement {
       // The skin carries on without the orb; say why, once, for whoever is integrating it.
       console.warn('Scry: the orb is off because WebGL2 could not start.', error);
       this.#engineFailed = true;
+      this.#container?.removeAttribute('data-scry-start');
 
       return null;
     }
@@ -381,6 +422,9 @@ export class ScryVisionElement extends UIElement {
   #syncMode(): void {
     // The small orb needs storyboard tiles; without them the slider preview keeps its own fallback.
     this.#container?.toggleAttribute('data-scry-gl', this.#live && this.#storied);
+
+    // The opening stone shows the poster's moment from the storyboard; without one the poster itself stays.
+    if (!this.#live || !this.#storied) this.#container?.removeAttribute('data-scry-start');
 
     if (!this.#live) {
       this.#container?.removeAttribute('data-scry-hover');
@@ -649,8 +693,8 @@ export class ScryVisionElement extends UIElement {
   #close(kind: 'scrub' | 'jump', from: number): void {
     if (!this.#engine || !this.#live) return;
 
-    // An ending is already an orb, holding the opening frame: it only has to grow.
-    const alreadyOrb = this.#figure === 'end';
+    // The opening stone and the ending are already orbs: they only have to change size.
+    const alreadyOrb = this.#figure === 'end' || this.#figure === 'start';
 
     if (!this.#journey.close(kind, alreadyOrb)) return;
 
@@ -676,6 +720,7 @@ export class ScryVisionElement extends UIElement {
     this.#figure = 'none';
     this.#presence = 0;
     this.#mist = 0;
+    this.#sparks = 0;
     this.#detail = 0;
     this.#still = 0;
     // Nothing may be drawing after this (a failed source has no duration to tick on), so wipe the canvas now.
@@ -750,6 +795,13 @@ export class ScryVisionElement extends UIElement {
     const host = this.getBoundingClientRect();
     const big = bigShape(host);
 
+    // ---- the first play: the opening stone becomes the big orb, which then opens onto the video
+    if (this.#figure === 'start' && this.#playback.value?.started) {
+      this.#frames.expect(this.#clock);
+      // Briskly: the video is already running underneath.
+      this.#close('jump', this.#picture.value);
+    }
+
     // ---- hands: what holds the orb closed, and where the picture should head
     const hovering = this.#followHover(bar, time.currentTime, host, big);
     const jumping = this.#clock < this.#jumpUntil;
@@ -768,6 +820,8 @@ export class ScryVisionElement extends UIElement {
     this.#container?.setAttribute('data-scry-hover', this.#hoverMode);
     this.#container?.toggleAttribute('data-scry-mist', this.#figure === 'mist' && goal !== null);
     this.#container?.toggleAttribute('data-scry-ended', this.#figure === 'end' && goal !== null);
+
+    if (this.#figure === 'start' && goal) this.#container?.setAttribute('data-scry-start', 'orb');
     this.#writeDelta(peeking ? this.#target - time.currentTime : null);
     this.#placeFigure(goal, dt);
 
@@ -868,6 +922,27 @@ export class ScryVisionElement extends UIElement {
 
     if (this.#journey.closed) return big;
 
+    if (playback && !playback.started && !playback.ended && this.#storied && !this.#flat) {
+      const moment = this.#posterTime();
+
+      if (this.#figure !== 'start') {
+        this.#become('start', moment);
+        this.#exact.drop();
+      }
+
+      // Resting on the timeline looks ahead in the stone itself.
+      this.#target = bar.pointing && !this.#quiet ? bar.time : moment;
+
+      // The play control moves a little as it is hovered and hidden; the stone stays where it was first put.
+      const key = `${Math.round(host.width)}x${Math.round(host.height)}`;
+
+      if (this.#startCentre?.key !== key) {
+        this.#startCentre = { key, circle: circleOf(this.#centre, host) ?? centreCircle(host) };
+      }
+
+      return startShape(host, this.#startCentre.circle);
+    }
+
     if (this.#hoverMode === 'peek' && bar.pointing && !this.#quiet && this.#storied) {
       const circle = circleOf(this.#anchor, host);
 
@@ -916,6 +991,13 @@ export class ScryVisionElement extends UIElement {
     return null;
   }
 
+  /** The moment the poster shows, where its address says; otherwise a little way in, past any fade from black. */
+  #posterTime(): number {
+    const poster = this.#container?.querySelector<HTMLImageElement>('.media-poster-image');
+
+    return stillTime(poster?.currentSrc || poster?.src || '') ?? Math.min(2, this.#duration * 0.05);
+  }
+
   /** Switch to a figure, with its picture starting at `time` and carrying no motion over. */
   #become(figure: Figure, time: number): void {
     this.#figure = figure;
@@ -948,8 +1030,12 @@ export class ScryVisionElement extends UIElement {
 
     if (!journey.closed) return;
 
+    const video = this.#video();
+    // A player with no picture yet (the first play, still loading) is as far from ready as one that is seeking.
+    const seeking = time.seeking || Boolean(video && video.readyState < 2);
+
     // The new frame is watched for from the moment hands are off, so a quick seek is ready by the time the orb is.
-    if (!this.#scrubbing && !hovering) this.#frames.poll(this.#clock, time.seeking, this.#video());
+    if (!this.#scrubbing && !hovering) this.#frames.poll(this.#clock, seeking, video);
 
     // With nothing holding it, the picture heads for wherever the player actually is.
     if (journey.opening) this.#target = time.currentTime;
@@ -958,7 +1044,7 @@ export class ScryVisionElement extends UIElement {
     const event = journey.step(dt, {
       frameReady: this.#frames.ready,
       arrived: Math.abs(this.#picture.value - this.#target) < near,
-      seeking: time.seeking,
+      seeking,
     });
 
     if (event === 'unwrap') {
@@ -996,10 +1082,15 @@ export class ScryVisionElement extends UIElement {
     const focused = visible && (this.#storied ? away < 0.12 : this.#exact.time !== null);
     const fog = this.#figure === 'mist' ? 1 : journey.waiting ? 0.75 : this.#storied ? 0 : smooth(away / 4) * 0.8;
     // The fire answers to how fast the picture is travelling, and smoulders while the orb is held closed.
-    const fire = Math.min(1, Math.abs(speed) * 0.22 + (journey.closed && !journey.unwrapping ? 0.22 : 0));
+    const waitingToStart = this.#figure === 'start';
+    const fire = Math.min(
+      1,
+      Math.abs(speed) * 0.22 + (journey.closed && !journey.unwrapping ? 0.22 : 0) + (waitingToStart ? 0.3 : 0)
+    );
 
     this.#detail = toward(this.#detail, focused ? 1 : 0, focused ? 10 : 22, dt);
     this.#mist = toward(this.#mist, fog, 6, dt);
+    this.#sparks = toward(this.#sparks, waitingToStart ? 1 : 0, 3, dt);
     this.#heat = toward(this.#heat, fire, 5, dt);
   }
 
@@ -1022,6 +1113,7 @@ export class ScryVisionElement extends UIElement {
       stage: flat && isBig ? 0 : this.#shape.stage * (isBig ? smooth(wrap * 1.3) : 1),
       wide: this.#shape.wide,
       mist: this.#mist,
+      sparks: this.#sparks,
       clock: this.#clock,
       reveal: isBig ? this.#journey.reveal : 0,
       inspect: this.#inspect,

@@ -28,6 +28,8 @@ export interface OrbView {
   wide: number;
   /** 0..1: fog inside the glass. */
   mist: number;
+  /** 0..1: embers rising inside the glass, without fog. */
+  sparks: number;
   /** Seconds, for anything that moves on its own. */
   clock: number;
   /** 0 the orb's own picture, 1 fully given way to the video underneath. */
@@ -390,6 +392,7 @@ export class LiquidEngine {
     gl.uniform1f(uniforms.uStage!, view.stage);
     gl.uniform1f(uniforms.uWide!, view.wide);
     gl.uniform1f(uniforms.uMist!, view.mist);
+    gl.uniform1f(uniforms.uSparks!, view.sparks);
     gl.uniform1f(uniforms.uClock!, view.clock);
     gl.uniform1f(uniforms.uInspect!, view.inspect);
     gl.uniform1f(uniforms.uStone!, view.stone);

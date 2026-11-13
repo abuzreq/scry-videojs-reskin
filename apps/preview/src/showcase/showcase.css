@@ -171,7 +171,7 @@ a:focus-visible {
 .moves {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
-  gap: 1.75rem 2.5rem;
+  gap: 1.5rem 2.5rem;
   margin: 0;
 }
 
@@ -220,26 +220,88 @@ a:focus-visible {
   font-style: italic;
 }
 
-/* ---------- Ornament: the drifting inscription ---------- */
+/* ---------- Ornament: the inscription ---------- */
 
-.inscription-gold {
-  stop-color: var(--gold);
+/* Each line of script kindles from its start, white-hot, cools to gold, fades out and, after a dark spell, kindles
+   again. Only position and opacity are animated, so nothing is redrawn while it runs. */
+.inscription {
+  --cycle: 17s;
+  position: relative;
+  flex: none;
+  width: 100%;
+  overflow: hidden;
 }
 
-.inscription-ember {
-  stop-color: var(--ember);
+/* The wipe: a window that slides in from the start of the line while what it holds slides the other way by the
+   same amount. The letters stay where they are and are uncovered from one end. */
+.inscription-wipe {
+  overflow: hidden;
+  animation: inscription-wipe var(--cycle) linear var(--inscription-delay, 0s) infinite both;
 }
 
+.inscription-hold {
+  display: grid;
+  animation: inscription-hold var(--cycle) linear var(--inscription-delay, 0s) infinite both;
+}
+
+@keyframes inscription-wipe {
+  0% {
+    transform: translateX(-100%);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
+  }
+
+  18%,
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes inscription-hold {
+  0% {
+    transform: translateX(100%);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
+  }
+
+  18%,
+  100% {
+    transform: none;
+  }
+}
+
+/* The two drawings of the line lie on top of each other and drift together. Each holds its text twice; sliding by
+   half its width brings it back to where it began. */
 .inscription-line {
   display: block;
-  flex: none;
-  /* Each line holds its text twice; sliding by half its width brings it back to where it began. */
-  animation: inscription-drift var(--inscription-seconds, 200s) linear infinite;
-  will-change: transform;
+  grid-area: 1 / 1;
+  will-change: transform, opacity;
 }
 
-.inscription-line[data-reverse] {
-  animation-direction: reverse;
+.inscription-hot {
+  animation:
+    inscription-drift var(--inscription-drift, 200s) linear infinite,
+    inscription-hot var(--cycle) linear var(--inscription-delay, 0s) infinite both;
+}
+
+.inscription-cooled {
+  animation:
+    inscription-drift var(--inscription-drift, 200s) linear infinite,
+    inscription-cooled var(--cycle) linear var(--inscription-delay, 0s) infinite both;
+}
+
+.inscription[data-reverse] .inscription-line {
+  animation-direction: reverse, normal;
+}
+
+.inscription-core {
+  stroke: #fff3cf;
+}
+
+.inscription-glow {
+  stroke: #ff7a1f;
+}
+
+.inscription-gold {
+  stroke: var(--gold);
 }
 
 @keyframes inscription-drift {
@@ -248,13 +310,90 @@ a:focus-visible {
   }
 }
 
-@keyframes inscription-breathe {
-  from {
-    opacity: 0.42;
+@keyframes inscription-hot {
+  0%,
+  17% {
+    opacity: 1;
   }
 
-  to {
-    opacity: 0.85;
+  /* A last flicker as it starts to cool. */
+  21% {
+    opacity: 0.7;
+  }
+
+  23% {
+    opacity: 0.9;
+  }
+
+  42%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes inscription-cooled {
+  0%,
+  16% {
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.9;
+  }
+
+  62% {
+    opacity: 0.75;
+    animation-timing-function: ease-in;
+  }
+
+  84%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The flame at the front of the wipe. */
+.inscription-flame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: inscription-flame var(--cycle) linear var(--inscription-delay, 0s) infinite both;
+}
+
+.inscription-flame::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  right: -1.5rem;
+  width: 5rem;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 214 150 / 0.75),
+    rgb(255 130 40 / 0.4) 40%,
+    rgb(229 100 30 / 0) 100%
+  );
+}
+
+@keyframes inscription-flame {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
+  }
+
+  1.5%,
+  15% {
+    opacity: 1;
+  }
+
+  18% {
+    transform: none;
+    opacity: 0;
+  }
+
+  100% {
+    transform: none;
+    opacity: 0;
   }
 }
 
@@ -265,9 +404,7 @@ a:focus-visible {
   overflow: hidden;
   max-width: 46rem;
   margin: clamp(2.5rem, 6vw, 4rem) auto;
-  opacity: 0.6;
   mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
-  animation: inscription-breathe 9s ease-in-out infinite alternate;
 }
 
 .section + .band {
@@ -285,7 +422,6 @@ a:focus-visible {
   pointer-events: none;
   /* The lines fade in from the top and out again above the credit at the foot of the margin. */
   mask-image: linear-gradient(180deg, transparent 2%, #000 16%, #000 46%, transparent 62%);
-  animation: inscription-breathe 11s ease-in-out infinite alternate;
 }
 
 .edge-left {
@@ -294,7 +430,6 @@ a:focus-visible {
 
 .edge-right {
   right: 0;
-  animation-delay: -6s;
 }
 
 /* The lines are written across and then turned to run down the page. */
@@ -306,6 +441,8 @@ a:focus-visible {
   flex-direction: column;
   justify-content: center;
   gap: 0.25rem;
+  /* As long as the margin is tall, so each line kindles across exactly what can be seen of it. */
+  width: 100vh;
   height: var(--edge);
   transform-origin: top left;
   transform: rotate(90deg);
@@ -362,11 +499,20 @@ a:focus-visible {
   }
 }
 
+/* Without motion the writing is simply there, cooled to gold. */
 @media (prefers-reduced-motion: reduce) {
-  .inscription-line,
-  .band,
-  .edge {
-    animation: none;
+  .inscription *,
+  .inscription *::after {
+    animation: none !important;
+  }
+
+  .inscription-hot,
+  .inscription-flame {
+    display: none;
+  }
+
+  .inscription-cooled {
+    opacity: 0.6;
   }
 }
 

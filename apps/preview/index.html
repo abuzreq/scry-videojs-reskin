@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#090706" />
     <meta
       name="description"
-      content="Scry is a Video.js v10 skin. Drag the timeline and the video rolls up into a seeing-stone that shows the footage moving as you scrub."
+      content="Scry is a Video.js v10 skin. Drag the timeline and the video rolls up into a seeing-stone that plays the footage as you scrub."
     />
     <meta name="author" content="Ahmed Abuzuraiq" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
@@ -26,7 +26,7 @@
 
       <div id="player" class="stage"></div>
 
-      <p class="hint">Drag the timeline, or drag left and right on the picture.</p>
+      <p class="hint">Press play, then drag the timeline or the picture.</p>
 
       <div class="band" aria-hidden="true"></div>
 
@@ -35,31 +35,19 @@
         <dl class="moves">
           <div>
             <dt>Drag</dt>
-            <dd>
-              Scrub the timeline, or drag anywhere on the picture. The video rolls up into the stone and plays through
-              it as you move, with the timeline bent around the rim. Let go and it opens on the new frame.
-            </dd>
+            <dd>The timeline, or the picture itself. The video rolls into the stone and plays through it.</dd>
           </div>
           <div>
             <dt>Hover</dt>
-            <dd>
-              Rest the pointer on the timeline and a small stone shows that moment. Hold still for a second and it
-              sharpens. The video keeps playing.
-            </dd>
+            <dd>Rest on the timeline for a look ahead.</dd>
           </div>
           <div>
             <dt>Skip</dt>
-            <dd>
-              Use the arrow keys, the number keys, or double-click either side of the picture. Long skips pass
-              through the stone; short ones just cut.
-            </dd>
+            <dd>Arrow keys, or double-click a side. Long skips pass through the stone.</dd>
           </div>
           <div>
             <dt>Wait</dt>
-            <dd>
-              When the video stalls, the stone fills with smoke. When it ends, the stone holds the opening frame.
-              Press it to start again.
-            </dd>
+            <dd>Smoke while it loads. At the end, the first frame again.</dd>
           </div>
         </dl>
       </section>
@@ -68,32 +56,13 @@
         <h2 id="how">How it works</h2>
         <div class="prose">
           <p>
-            Scrubbing a video normally shows you a strip of thumbnails. Those thumbnails come from a storyboard: one
-            image, published alongside the video, with a small frame every few seconds.
+            Every video comes with a storyboard: one image with a small frame every few seconds, meant for
+            thumbnails. Scry works out how the picture moves between those frames and blends them along that motion,
+            so a few dozen stills play like footage. It runs in your browser as shader code. Nothing is uploaded.
           </p>
           <p>
-            Scry takes the same image and works out how the picture moves between each frame and the next. It then
-            uses that motion to push one frame into the other, so a few dozen stills look like footage. Where the
-            video cuts to a different shot there is no motion to follow, and the frames dissolve instead.
-          </p>
-          <p>
-            All of this is shader code running in your browser. Nothing is uploaded, and there is no model to
-            download.
-          </p>
-        </div>
-      </section>
-
-      <section class="section" aria-labelledby="player-notes">
-        <h2 id="player-notes">Still a normal player</h2>
-        <div class="prose">
-          <p>
-            Under the stone are the standard Video.js controls: play, seek, volume, captions, speed, quality,
-            picture-in-picture and fullscreen. They all work from the keyboard and on touch, and the timeline is
-            still a labelled slider for screen readers.
-          </p>
-          <p>
-            If you have reduced motion turned on, or your browser has no WebGL2, the stone never appears. Seeking
-            cuts as usual and the preview is a plain thumbnail.
+            Underneath are the standard Video.js controls, keyboard and screen reader support included. With reduced
+            motion turned on, the stone stays away.
           </p>
         </div>
       </section>
@@ -103,13 +72,11 @@
       <footer class="colophon">
         <p>
           Made by <a href="https://abuzreq.com/" rel="author">Ahmed Abuzuraiq</a> for the
-          <a href="https://contra.com/community/topic/videojsskinschallenge/guidelines">Video.js Skins Design Challenge</a>
-          on Contra, November 2026.
+          <a href="https://contra.com/community/topic/videojsskinschallenge/guidelines">Video.js Skins Design Challenge</a>.
         </p>
         <p>
-          The <a href="https://github.com/abuzreq/scry-videojs-reskin">source is on GitHub</a> under the Apache 2.0
-          licence. Built on <a href="https://videojs.org">Video.js v10</a>. The film is NASA’s
-          <cite>Cosmic Dawn</cite> trailer, streamed by Mux. Titles are set in Cinzel.
+          <a href="https://github.com/abuzreq/scry-videojs-reskin">Source on GitHub</a>, Apache 2.0. Film: NASA’s
+          <cite>Cosmic Dawn</cite> trailer, streamed by Mux.
         </p>
       </footer>
     </main>

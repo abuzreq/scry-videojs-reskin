@@ -147,6 +147,7 @@ async function main() {
           stage: mode === 'wrap' ? Math.min(1, f * 1.4) : small ? 0 : 1,
           wide: small ? 0 : 1,
           mist: mode === 'mist' || mode === 'small-mist' ? f : 0,
+          sparks: 0,
           clock: 3 + f * 6,
           reveal: 0,
           inspect: 0,
