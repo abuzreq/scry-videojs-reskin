@@ -146,7 +146,7 @@ apps/preview/               the home page, the workbench and the bare preview
 design/                     design notes and screenshots
 ```
 
-`design/spec.md` describes the design decisions in detail.
+`design/spec.md` describes the design decisions in detail. `design/scry-demo.mp4` is a 38-second walk-through of the skin.
 
 ## Development
 
