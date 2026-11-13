@@ -65,7 +65,7 @@ ONNX runtime from jsDelivr, once, cached by the browser. It is off by default, a
   previews (`preview.html`).
 - `apps/preview/lab.html` — development page that renders contact sheets of the morph (`npm run dev`, then `/lab.html`).
 
-Licensed under the Apache License, Version 2.0.
+By [Ahmed Abuzuraiq](https://abuzreq.com/). Licensed under the Apache License, Version 2.0.
 
 ---
 

@@ -35,6 +35,4 @@ wraps.
       only. If a device struggles, lower `ScryVisionElement.maxPixels`.
 - [ ] Replace the placeholder video in `apps/preview/src/frame/player.ts` with your own Mux asset and note its
       playback ID for the bonus point. Footage with long takes shows the interpolation best.
-- [ ] Replace the copyright line in `LICENSE` with your name. The bundled typeface (Cinzel) keeps its own licence,
-      the SIL Open Font License, in `src/video/fonts/OFL.txt`.
 - [ ] The challenge page marks submissions as needing an external social post; check the form.

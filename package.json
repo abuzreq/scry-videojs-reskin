@@ -1,6 +1,17 @@
 {
   "name": "scry",
   "version": "0.0.0",
+  "description": "Scry: a seeing-stone skin for Video.js v10",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Ahmed Abuzuraiq",
+    "email": "abuzreq@hotmail.com",
+    "url": "https://abuzreq.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abuzreq/videojs-reskin.git"
+  },
   "private": true,
   "type": "module",
   "scripts": {

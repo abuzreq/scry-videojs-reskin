@@ -19,9 +19,11 @@ import { ArcBar, type ArcChapter, formatOffset } from './scry-arc';
 const SPRING = 13;
 /** Rectangle to orb and back, in seconds: while scrubbing, and for a jump. */
 const WRAP = { scrub: 0.34, jump: 0.18 };
-const UNWRAP = { scrub: 0.4, jump: 0.28 };
+const UNWRAP = { scrub: 0.4, jump: 0.24 };
+/** A jump's picture travels on a stiffer spring than a hand's, so a skip is over quickly. */
+const JUMP_SPRING = 22;
 /** A jump keeps the orb closed this long after the last one, so repeated presses read as one journey. */
-const JUMP_LINGER = 0.3;
+const JUMP_LINGER = 0.12;
 /** Seeks shorter than this cut as usual: a one-second nudge on the slider is not a journey. */
 const JUMP_MIN_SECONDS = 2.5;
 /** Longest the closed orb waits for the player to show the new frame before opening anyway. */
@@ -156,6 +158,7 @@ export class ScryVisionElement extends UIElement {
   #openAge = 0;
   #frameReady = false;
   #frameRequested = false;
+  #frameGuardUntil = 0;
   #barPressed = false;
   #pressClock = 0;
   #pressFrom = 0;
@@ -584,7 +587,15 @@ export class ScryVisionElement extends UIElement {
   /** Something seeked on its own. */
   #jump(from: number): void {
     this.#jumpUntil = this.#clock + JUMP_LINGER;
+    this.#expectFrame(0);
     this.#close('jump', from);
+  }
+
+  /** A new frame is on its way; `guard` seconds pass before the player is asked whether it has arrived. */
+  #expectFrame(guard: number): void {
+    this.#frameReady = false;
+    this.#frameRequested = false;
+    this.#frameGuardUntil = this.#clock + guard;
   }
 
   /** The timeline was clicked rather than dragged: travel there as a jump, if it is far enough to be one. */
@@ -603,6 +614,8 @@ export class ScryVisionElement extends UIElement {
   #release(): void {
     // The seek that follows a release is ours, not a jump.
     this.#graceUntil = this.#clock + 0.35;
+    // The seek belonging to this release may not have started yet; give it a beat before asking for its frame.
+    this.#expectFrame(0.06);
     // The pointer is usually still where it was; do not treat that as a new look until it moves away.
     this.#quiet = true;
     this.#quietAt = this.#pointer ? { x: this.#pointer.x, y: this.#pointer.y } : null;
@@ -847,8 +860,6 @@ export class ScryVisionElement extends UIElement {
         } else {
           this.#opening = true;
           this.#openAge = 0;
-          this.#frameReady = false;
-          this.#frameRequested = false;
         }
       }
     }
@@ -934,7 +945,8 @@ export class ScryVisionElement extends UIElement {
     }
 
     // ---- the picture: a critically damped spring toward the target, so it glides and never overshoots
-    const acceleration = SPRING * SPRING * (this.#target - this.#shown) - 2 * SPRING * this.#velocity;
+    const stiffness = this.#brisk ? JUMP_SPRING : SPRING;
+    const acceleration = stiffness * stiffness * (this.#target - this.#shown) - 2 * stiffness * this.#velocity;
 
     this.#velocity += acceleration * dt;
     this.#shown += this.#velocity * dt;
@@ -946,14 +958,16 @@ export class ScryVisionElement extends UIElement {
     let waiting = false;
 
     if (this.#closed) {
+      // The new frame is watched for from the moment hands are off, so a quick seek is ready by the time the orb is.
+      if (!this.#scrubbing && !hovering) this.#awaitFrame(time.seeking);
+
       if (!this.#opening) {
         this.#wrap = Math.min(1, this.#wrap + dt / WRAP[this.#brisk ? 'jump' : 'scrub']);
       } else {
         this.#openAge += dt;
         this.#target = time.currentTime;
-        this.#awaitFrame(time.seeking);
 
-        const arrived = Math.abs(this.#shown - this.#target) < Math.max(0.2, tileSeconds * 0.3);
+        const arrived = Math.abs(this.#shown - this.#target) < Math.max(0.2, tileSeconds * (this.#brisk ? 0.5 : 0.3));
 
         // Normally the new frame arrives within a few frames. A slow seek keeps the orb closed, under fog, rather
         // than opening onto a picture that is not there yet; a very long one opens anyway.
@@ -1097,7 +1111,7 @@ export class ScryVisionElement extends UIElement {
 
   /** Wait for the player to finish seeking and put the new frame on screen. */
   #awaitFrame(seeking: boolean): void {
-    if (this.#frameReady || this.#frameRequested || seeking || this.#openAge < 0.06) return;
+    if (this.#frameReady || this.#frameRequested || seeking || this.#clock < this.#frameGuardUntil) return;
 
     this.#frameRequested = true;
 
@@ -1106,7 +1120,7 @@ export class ScryVisionElement extends UIElement {
 
     // A paused player that was already on this frame presents nothing new, so the timer is the floor.
     video?.requestVideoFrameCallback?.(done);
-    setTimeout(done, 160);
+    setTimeout(done, 120);
   }
 
   /** Back to the plain rectangle, or to nothing on screen. */
