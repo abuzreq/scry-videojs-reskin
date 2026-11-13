@@ -247,7 +247,33 @@ uniform float uPixelRatio;
 uniform vec2 uTilt;
 uniform sampler2D uDetail;
 uniform float uDetailMix;
+uniform float uInspect;
 out vec4 outColor;
+
+vec3 hueWheel(float h) {
+  return clamp(abs(fract(h + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0, 0.0, 1.0);
+}
+
+/**
+ * Looks behind the morph, for studying it:
+ * 1 the flow field (colour is the direction a point travels from this tile to the next, strength the distance),
+ * 2 a plain crossfade on the left half against the morph on the right,
+ * 3 where the two tiles agree after the flow (green) and where they do not (red).
+ */
+vec3 inspect(vec2 p, vec3 morphed) {
+  if (uA == uB) return morphed;
+  vec4 field = textureLod(uFlow, vec3(p, uA), 0.0);
+  vec2 flow = unpackFlow(field);
+  if (uInspect < 1.5) {
+    float strength = clamp(length(flow) / 0.05, 0.0, 1.0);
+    return mix(vec3(luma(morphed) * 0.35), hueWheel(atan(flow.y, flow.x) / 6.2831853 + 0.5), strength);
+  }
+  if (uInspect < 2.5) {
+    if (abs(p.x - 0.5) < 0.0015) return vec3(1.0);
+    return p.x < 0.5 ? mix(tile(uA, p, 0.0), tile(uB, p, 0.0), uMix) : morphed;
+  }
+  return mix(vec3(0.9, 0.2, 0.15), vec3(0.2, 0.85, 0.4), field.b) * (0.35 + 0.65 * luma(morphed));
+}
 
 /** Where a point of the sphere (p in -1..1, r = |p|) looks in the picture: tight in the middle, wide at the rim. */
 vec2 lensUv(vec2 p, float r, float scale) {
@@ -345,6 +371,8 @@ void main() {
   } else {
     col = morph(uvG);
   }
+
+  if (uInspect > 0.5) col = inspect(uvG, morph(uvG));
 
   // The exact frame for this moment, when there is one, replaces the storyboard's approximation.
   if (uDetailMix > 0.001) col = mix(col, texture(uDetail, inNearestDepth(uvG)).rgb, uDetailMix);

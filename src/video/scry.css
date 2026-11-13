@@ -90,6 +90,13 @@
       outline: none;
     }
 
+    /* Flat, the controls stay where they are; only the play orb and the pointer preview step aside. */
+    :scope[data-scry-flat] .video-controls-center,
+    :scope[data-scry-flat] .media-time-slider-preview {
+      pointer-events: none;
+      opacity: 0;
+    }
+
     /* With hover="orb" the big orb is the preview, so the small one at the pointer never shows. */
     :scope[data-scry-hover="orb"] .media-time-slider-preview {
       display: none;

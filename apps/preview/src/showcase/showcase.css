@@ -61,13 +61,20 @@ body {
     0 40px 80px -30px rgb(0 0 0 / 0.8);
 }
 
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
 .choice {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
   justify-content: center;
   width: fit-content;
-  margin: 1.25rem auto 0;
   padding: 0.25rem;
   border: 1px solid var(--rule);
   border-radius: 999px;

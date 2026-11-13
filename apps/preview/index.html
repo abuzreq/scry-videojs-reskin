@@ -19,9 +19,21 @@
 
       <div id="player" class="stage"></div>
 
-      <div class="choice" role="group" aria-label="What resting on the timeline does">
-        <button type="button" data-hover="orb" aria-pressed="true">Hover wraps the picture</button>
-        <button type="button" data-hover="peek" aria-pressed="false">Hover peeks with a small orb</button>
+      <div class="choices">
+        <div class="choice" role="group" aria-label="Shape of the picture while travelling" data-option="shape">
+          <button type="button" data-value="orb">Wrap into an orb</button>
+          <button type="button" data-value="flat">Stay a rectangle</button>
+        </div>
+        <div class="choice" role="group" aria-label="What resting on the timeline does" data-option="hover">
+          <button type="button" data-value="orb">Hover travels</button>
+          <button type="button" data-value="peek">Hover peeks</button>
+        </div>
+        <div class="choice" role="group" aria-label="Inspect the morph" data-option="inspect">
+          <button type="button" data-value="off">Picture</button>
+          <button type="button" data-value="compare">Crossfade | morph</button>
+          <button type="button" data-value="flow">Flow field</button>
+          <button type="button" data-value="agreement">Agreement</button>
+        </div>
       </div>
 
       <p class="hint">

@@ -10,21 +10,28 @@ const i18n = document.createElement('media-i18n');
 i18n.append(createPlayer());
 document.getElementById('player')!.append(i18n);
 
-// The two hover behaviours, side by side: the buttons set the skin's `hover` attribute and keep it in the URL.
-const buttons = [...document.querySelectorAll<HTMLButtonElement>('.choice button')];
-const choose = (mode: string, write: boolean) => {
-  document.querySelector('scry-vision')?.setAttribute('hover', mode);
+// Switches for the options under evaluation: each group sets one attribute on the skin and keeps it in the URL.
+const query = new URLSearchParams(location.search);
 
-  for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.hover === mode));
+for (const group of document.querySelectorAll<HTMLElement>('.choice')) {
+  const option = group.dataset.option!;
+  const buttons = [...group.querySelectorAll<HTMLButtonElement>('button')];
+  const choose = (value: string, write: boolean) => {
+    document.querySelector('scry-vision')?.setAttribute(option, value);
 
-  if (write) {
-    const url = new URL(location.href);
+    for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.value === value));
 
-    url.searchParams.set('hover', mode);
-    history.replaceState(null, '', url);
-  }
-};
+    if (write) {
+      const url = new URL(location.href);
 
-for (const button of buttons) button.addEventListener('click', () => choose(button.dataset.hover!, true));
+      url.searchParams.set(option, value);
+      history.replaceState(null, '', url);
+    }
+  };
 
-choose(new URLSearchParams(location.search).get('hover') === 'peek' ? 'peek' : 'orb', false);
+  for (const button of buttons) button.addEventListener('click', () => choose(button.dataset.value!, true));
+
+  const initial = query.get(option);
+
+  choose(buttons.some((button) => button.dataset.value === initial) ? initial! : buttons[0]!.dataset.value!, false);
+}

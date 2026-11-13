@@ -81,6 +81,9 @@ const toward = (value: number, goal: number, rate: number, dt: number) => value 
  * Attributes:
  * - `hover="orb"` (default): resting the pointer on the timeline wraps the picture too, so you can look around
  *   before committing. `hover="peek"`: hovering shows a small orb at the pointer and leaves the picture alone.
+ * - `shape="flat"`: nothing wraps. Time travel plays the same flowing picture across the plain rectangle, with no
+ *   lens, glass or stage, so the morph itself can be seen. `inspect="flow"`, `"compare"` or `"agreement"` then shows
+ *   the flow field, a plain crossfade beside the morph, or where the two frames agree.
  * - `depth="auto"`: the optional depth tier, which gives the picture in the orb real parallax where WebGPU is
  *   available (`depth="wasm"` forces the slow WebAssembly backend). Off by default; it is the only part that
  *   downloads a model.
@@ -268,7 +271,7 @@ export class ScryVisionElement extends UIElement {
     this.#figure = 'none';
     this.#closed = false;
 
-    for (const name of ['gl', 'wrapped', 'mist', 'ended', 'quiet', 'depth', 'hover']) {
+    for (const name of ['gl', 'wrapped', 'flat', 'mist', 'ended', 'quiet', 'depth', 'hover']) {
       this.#container?.removeAttribute(`data-scry-${name}`);
     }
   }
@@ -382,7 +385,17 @@ export class ScryVisionElement extends UIElement {
   }
 
   get #hoverMode(): 'orb' | 'peek' {
-    return this.getAttribute('hover') === 'peek' ? 'peek' : 'orb';
+    // Flat, hovering always looks around across the whole frame: that is what the mode is for.
+    return this.getAttribute('hover') === 'peek' && !this.#flat ? 'peek' : 'orb';
+  }
+
+  /** `shape="flat"`: the picture stays a rectangle. */
+  get #flat(): boolean {
+    return this.getAttribute('shape') === 'flat';
+  }
+
+  get #inspect(): number {
+    return ['flow', 'compare', 'agreement'].indexOf(this.getAttribute('inspect') ?? '') + 1;
   }
 
   #syncMode(): void {
@@ -460,7 +473,7 @@ export class ScryVisionElement extends UIElement {
     }
 
     this.#figure = 'big';
-    this.#container?.setAttribute('data-scry-wrapped', '');
+    this.#container?.setAttribute(this.#flat ? 'data-scry-flat' : 'data-scry-wrapped', '');
     this.#releaseLock ??= this.#controls.value?.requestControlsLock() ?? null;
     this.#wake();
   }
@@ -488,7 +501,7 @@ export class ScryVisionElement extends UIElement {
     this.#detailTime = null;
     this.#detail = 0;
 
-    if (!video || video.readyState < 2 || !this.#engine) return;
+    if (!video || video.readyState < 2 || !this.#engine || this.#inspect > 0) return;
 
     try {
       this.#engine.setDetail(video);
@@ -736,7 +749,7 @@ export class ScryVisionElement extends UIElement {
         looking = true;
         this.#target = pointerTime;
       }
-    } else if (playback?.ended) {
+    } else if (playback?.ended && !this.#flat) {
       const circle = this.#measure(this.#centre, host);
 
       if (circle && this.#storied) {
@@ -750,7 +763,7 @@ export class ScryVisionElement extends UIElement {
 
         goal = { x: circle.x, y: circle.y, radius: circle.radius * 2, wide: 0.7, stage: 0.55 };
       }
-    } else if (playback?.waiting && !playback.paused) {
+    } else if (playback?.waiting && !playback.paused && !this.#flat) {
       this.#waitAge += dt;
 
       const circle = this.#measure(this.#centre, host);
@@ -842,7 +855,8 @@ export class ScryVisionElement extends UIElement {
     this.#lastTarget = this.#target;
     this.#still = steady && visible && !this.#unwrapping ? this.#still + dt : 0;
 
-    if (this.#still > DWELL_SECONDS && this.#figure !== 'mist') this.#requestDetail(this.#target);
+    // Flat, the storyboard's own picture stays on screen: fetching the true frame would cover what is being studied.
+    if (this.#still > DWELL_SECONDS && this.#figure !== 'mist' && !this.#flat) this.#requestDetail(this.#target);
 
     const away = this.#detailTime === null ? Infinity : Math.abs(this.#shown - this.#detailTime);
     // Without a storyboard the captured frame is all there is: hold it, and let fog say how far away the target is.
@@ -858,7 +872,9 @@ export class ScryVisionElement extends UIElement {
     // ---- draw
     const scale = this.#canvas.width / Math.max(1, host.width);
     const isBig = this.#figure === 'big';
-    const wrap = isBig ? this.#wrap : 1;
+    const flat = this.#flat;
+    // Flat, the big figure keeps its timing but never leaves the rectangle.
+    const wrap = isBig ? (flat ? 0 : this.#wrap) : 1;
 
     engine.render({
       time: this.#shown,
@@ -868,11 +884,12 @@ export class ScryVisionElement extends UIElement {
       frame: this.#pictureRect(host, scale, engine),
       presence: visible ? this.#presence : 0,
       wrap,
-      stage: this.#shape.stage * (isBig ? smooth(wrap * 1.3) : 1),
+      stage: flat && isBig ? 0 : this.#shape.stage * (isBig ? smooth(wrap * 1.3) : 1),
       wide: this.#shape.wide,
       mist: this.#mist,
       clock: this.#clock,
       reveal: isBig ? this.#reveal : 0,
+      inspect: this.#inspect,
       detail: this.#detail,
       // Fast travel softens the picture a little and leans it into the direction of travel.
       smear: Math.min(1.4, Math.abs(speed) * 0.09),
@@ -899,7 +916,7 @@ export class ScryVisionElement extends UIElement {
 
     if (!arc || !slider || !time) return;
 
-    const showing = this.#figure === 'big';
+    const showing = this.#figure === 'big' && !this.#flat;
 
     arc.element.toggleAttribute('data-visible', showing);
 
@@ -971,6 +988,7 @@ export class ScryVisionElement extends UIElement {
     this.#detail = 0;
     this.#still = 0;
     this.#container?.removeAttribute('data-scry-wrapped');
+    this.#container?.removeAttribute('data-scry-flat');
     this.#arc?.element.removeAttribute('data-visible');
     this.#unlock();
     this.#wake();

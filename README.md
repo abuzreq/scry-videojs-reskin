@@ -13,6 +13,18 @@ nothing wraps: seeks cut and the timeline preview shows a still thumbnail.
 `<scry-vision hover="orb">` (the default) also wraps the picture when the pointer merely rests on the timeline;
 `hover="peek"` shows a small orb at the pointer instead. The showcase page has a switch for the two.
 
+## Seeing the flow on its own
+
+`<scry-vision shape="flat">` (or `?shape=flat` on the showcase or preview) keeps the picture a rectangle: time travel
+plays the same flowing picture across the whole frame with no lens, glass or stage, and hovering the timeline looks
+around. `inspect` then shows what is behind it:
+
+- `inspect="compare"`: a plain crossfade on the left half, the flow morph on the right.
+- `inspect="flow"`: the flow field. Colour is the direction a point travels from one storyboard tile to the next,
+  strength the distance. One even colour means the whole picture moves together (a pan within a shot); a patchwork
+  means the two tiles share nothing (a cut), which is where the morph turns into a liquid dissolve.
+- `inspect="agreement"`: green where the two tiles match after the flow, red where they do not.
+
 ## Depth tier (opt-in)
 
 Add `depth="auto"` to `<scry-vision>` (or `?depth=auto` to the showcase or preview URL) and the orb gains real

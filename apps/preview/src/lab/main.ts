@@ -149,6 +149,7 @@ async function main() {
           mist: mode === 'mist' || mode === 'small-mist' ? f : 0,
           clock: 3 + f * 6,
           reveal: 0,
+          inspect: 0,
           detail: 0,
           parallax: [0, 0],
           dolly: 0,

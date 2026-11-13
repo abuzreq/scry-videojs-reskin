@@ -32,6 +32,8 @@ export interface OrbView {
   clock: number;
   /** 0 the orb's own picture, 1 fully given way to the video underneath. */
   reveal: number;
+  /** 0 the picture; 1 the flow field, 2 crossfade against morph, 3 agreement. For studying the morph. */
+  inspect: number;
   /** 0..1: how much of the detail picture (see `setDetail`) to show in place of the storyboard. */
   detail: number;
   /** Sideways move of the eye, in picture units; only shows where depth is known. */
@@ -377,6 +379,7 @@ export class LiquidEngine {
     gl.uniform1f(uniforms.uWide!, view.wide);
     gl.uniform1f(uniforms.uMist!, view.mist);
     gl.uniform1f(uniforms.uClock!, view.clock);
+    gl.uniform1f(uniforms.uInspect!, view.inspect);
     gl.uniform1f(uniforms.uPresence!, view.presence);
     gl.uniform1f(uniforms.uReveal!, view.reveal);
     gl.uniform1f(uniforms.uPixelRatio!, view.pixelRatio);
