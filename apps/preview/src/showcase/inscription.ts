@@ -1,31 +1,20 @@
 /**
- * The inscription that drifts along the page's edges.
+ * The inscription in the page's margins: the writing itself.
  *
  * It is an invented script, drawn here from scratch: every letter is a stem with one or two bows, sometimes with a
  * mark above, which is enough for lines of it to read as writing. It says nothing, and it is not any existing
  * alphabet or typeface.
  *
- * Each line is a single SVG path, laid out twice end to end so it can scroll forever by half its own width. The
- * scrolling is a CSS transform on the whole line, so the browser draws the letters once and only moves them.
- *
- * The letters are not always there. Each line kindles from one end to the other, white-hot, cools to gold, fades
- * to nothing and after a while kindles again: writing that only shows when the metal is hot. Every line is drawn
- * twice, once hot (pale, with an ember glow drawn into it) and once cooled to gold, and the stylesheet fades between
- * the two. A wipe uncovers the line from its start, with a small flame riding its front.
- *
- * Nothing here is animated except position and opacity, which browsers can do without redrawing anything. That
- * keeps the ornament from competing with the player for the graphics card.
+ * This file only writes lines of it, as SVG path data. `embers.ts` sets them alight.
  */
 
-const SVG = 'http://www.w3.org/2000/svg';
-
 /** Letters sit on a baseline at y = 10 with their bodies reaching up to y = 0. */
-const BASELINE = 10;
+export const BASELINE = 10;
 const ASCENT = -9;
 const DESCENT = 19;
 /** A line's box: room above for marks and tall stems, below for deep ones. */
-const TOP = -13;
-const HEIGHT = 35;
+export const TOP = -13;
+export const HEIGHT = 35;
 /** The pen is a broad nib held at 45°: each stroke is drawn three times a little apart, which thickens every
  *  direction but the one the nib points along. */
 const NIB = [0, 0.32, 0.64];
@@ -365,122 +354,38 @@ function trace(stroke: Stroke, dx: number, dy: number): string {
   return d;
 }
 
-/** Write words until the line is at least `length` units long. Returns the path and how long it came out. */
-function write(length: number, random: () => number): { d: string; length: number } {
-  const glyphs: { glyph: Glyph; x: number }[] = [];
+/**
+ * Write one line, `length` units long, as path data. Whole words only: what is left over at the end stays empty,
+ * like the pause between phrases. The same seed always writes the same line, so the page looks the same on every
+ * visit.
+ */
+export function writeLine(length: number, seed: number): string {
+  const random = seeded(seed);
+  let d = '';
   let x = 0;
 
-  while (x < length) {
+  for (;;) {
+    const word: Glyph[] = [];
     const letters = 2 + Math.floor(random() * 5);
 
-    for (let i = 0; i < letters; i++) {
-      const glyph = letter(random);
+    for (let i = 0; i < letters; i++) word.push(letter(random));
 
-      glyphs.push({ glyph, x });
+    if (random() < 0.22) word.push({ strokes: [], advance: 3 }, pause());
+
+    const width = word.reduce((sum, glyph) => sum + glyph.advance, 0);
+
+    if (x + width > length) break;
+
+    for (const glyph of word) {
+      for (const stroke of glyph.strokes) {
+        for (const nib of NIB) d += trace(stroke, x + nib, -nib);
+      }
+
       x += glyph.advance;
-    }
-
-    if (random() < 0.22) {
-      x += 3;
-      glyphs.push({ glyph: pause(), x });
-      x += 5;
     }
 
     x += 7;
   }
 
-  let d = '';
-
-  // Twice over, so the line can wrap around.
-  for (const offset of [0, x]) {
-    for (const { glyph, x: at } of glyphs) {
-      for (const stroke of glyph.strokes) {
-        for (const nib of NIB) d += trace(stroke, at + offset + nib, -nib);
-      }
-    }
-  }
-
-  return { d, length: x };
-}
-
-export interface InscriptionOptions {
-  /** Picks the text: the same seed always writes the same line. */
-  seed: number;
-  /** The height of a letter's body, in CSS pixels. */
-  size: number;
-  /** How long the line takes to drift past once, in seconds. */
-  drift: number;
-  /** Send it the other way. */
-  reverse?: boolean;
-  /** How long after the page loads this line first kindles, in seconds. */
-  delay: number;
-  /** The longest stretch of the line that can be on screen at once, in CSS pixels. */
-  length: number;
-}
-
-function svgElement<K extends keyof SVGElementTagNameMap>(name: K, attributes: Record<string, string>): SVGElementTagNameMap[K] {
-  const element = document.createElementNS(SVG, name);
-
-  for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
-
-  return element;
-}
-
-/** One drawing of a line: the same letters, stroked however `strokes` says, widest first. */
-function drawing(d: string, length: number, scale: number, strokes: Record<string, string>[]): SVGSVGElement {
-  const svg = svgElement('svg', {
-    viewBox: `0 ${TOP} ${n(length * 2)} ${HEIGHT}`,
-    width: String(Math.round(length * 2 * scale)),
-    height: String(Math.round(HEIGHT * scale)),
-    'aria-hidden': 'true',
-    focusable: 'false',
-  });
-
-  for (const stroke of strokes) {
-    svg.append(svgElement('path', { d, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', ...stroke }));
-  }
-
-  svg.classList.add('inscription-line');
-
-  return svg;
-}
-
-const element = (className: string, ...children: Node[]): HTMLDivElement => {
-  const div = document.createElement('div');
-
-  div.className = className;
-  div.append(...children);
-
-  return div;
-};
-
-/** Add one line of the script to `host`. */
-export function inscribe(host: HTMLElement, options: InscriptionOptions): void {
-  const scale = options.size / BASELINE;
-  // Longer than what can be seen of it, so the join never shows.
-  const { d, length } = write(options.length / scale, seeded(options.seed));
-
-  // Hot: a pale core over two soft ember strokes that stand in for a glow.
-  const hot = drawing(d, length, scale, [
-    { class: 'inscription-glow', 'stroke-width': '3.2', 'stroke-opacity': '0.16' },
-    { class: 'inscription-glow', 'stroke-width': '1.7', 'stroke-opacity': '0.3' },
-    { class: 'inscription-core', 'stroke-width': '0.55' },
-  ]);
-  const gold = drawing(d, length, scale, [{ class: 'inscription-gold', 'stroke-width': '0.5' }]);
-
-  hot.classList.add('inscription-hot');
-  gold.classList.add('inscription-cooled');
-
-  const line = element(
-    'inscription',
-    element('inscription-wipe', element('inscription-hold', hot, gold)),
-    element('inscription-flame')
-  );
-
-  line.style.setProperty('--inscription-delay', `${options.delay}s`);
-  line.style.setProperty('--inscription-drift', `${options.drift}s`);
-
-  if (options.reverse) line.dataset.reverse = '';
-
-  host.append(line);
+  return d;
 }
