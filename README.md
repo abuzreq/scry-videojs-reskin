@@ -1,13 +1,17 @@
 # Scry
 
-A crystal-ball skin for [Video.js v10](https://videojs.org). Hover or drag the timeline and a glass orb rises from the
-playhead showing that moment of the video; as you move, the picture inside flows between frames instead of flipping.
-Let go and the orb opens into the frame.
+A crystal-ball skin for [Video.js v10](https://videojs.org). The video is a rectangle until you travel through time:
+drag the timeline, drag sideways on the picture, or jump with the keys, and the picture curls up into a glass orb in
+which the video flows from one moment to the next. The timeline curls onto the orb's rim. Arrive, and it uncurls onto
+the new frame. Buffering shows as fog in a small orb; the end of the video as an orb holding its opening frame.
 
 The effect runs on the viewer's device in WebGL2 fragment shaders: optical flow between storyboard tiles, the morph,
-and the lens. There is no model to download and no extension to enable. With a Mux source, resting the pointer on a
-moment also fetches that exact frame from Mux so the orb comes into focus. Without WebGL2, without a storyboard, or
-with reduced motion turned on, the orb shows the still thumbnail instead.
+the wrap and the lens. There is no model to download and no extension to enable. With a Mux source, resting on a moment
+also fetches that exact frame from Mux so the orb comes into focus. Without WebGL2, or with reduced motion turned on,
+nothing wraps: seeks cut and the timeline preview shows a still thumbnail.
+
+`<scry-vision hover="orb">` (the default) also wraps the picture when the pointer merely rests on the timeline;
+`hover="peek"` shows a small orb at the pointer instead. The showcase page has a switch for the two.
 
 ## Depth tier (opt-in)
 
@@ -21,7 +25,7 @@ ONNX runtime from jsDelivr, once, cached by the browser. It is off by default, a
 ## Layout
 
 - `src/video/` — the skin: markup (`skin.html`), elements and icons (`skin.ts`, `icons/`), styles (`skin.css` for
-  structure, `scry.css` for the look), and `scry-vision.ts`, the element that draws the orb.
+  structure, `scry.css` for the look), `scry-vision.ts`, the element that draws the orb, and `scry-arc.ts`, the curved timeline.
 - `src/liquid/` — the engine, with no dependency on Video.js: `engine.ts`, `shaders.ts`, `storyboard.ts`, and the
   optional `depth.ts` and `depth.worker.ts`.
 - `design/spec.md` — the design.

@@ -21,8 +21,8 @@ const WRAP = { scrub: 0.34, jump: 0.18 };
 const UNWRAP = { scrub: 0.4, jump: 0.28 };
 /** A jump keeps the orb closed this long after the last one, so repeated presses read as one journey. */
 const JUMP_LINGER = 0.3;
-/** Seeks shorter than this cut as usual. */
-const JUMP_MIN_SECONDS = 0.75;
+/** Seeks shorter than this cut as usual: a one-second nudge on the slider is not a journey. */
+const JUMP_MIN_SECONDS = 2.5;
 /** Longest the closed orb waits for the player to show the new frame before opening anyway. */
 const READY_TIMEOUT = 1.6;
 /** Waiting has to last this long before fog appears. */
@@ -987,7 +987,7 @@ export class ScryVisionElement extends UIElement {
   #bigShape(host: DOMRect): Shape {
     const radius = Math.max(36, Math.min(host.height * 0.38, host.width * 0.3, (host.height - 64) / 2));
 
-    return { x: host.width / 2, y: Math.min(host.height * 0.45, radius + 14), radius, wide: 1, stage: 1 };
+    return { x: host.width / 2, y: Math.max(host.height * 0.45, radius + 10), radius, wide: 1, stage: 1 };
   }
 
   /** An element's circle, in CSS pixels relative to this element. */

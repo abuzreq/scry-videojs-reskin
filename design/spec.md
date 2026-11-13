@@ -1,13 +1,12 @@
 # Scry — design spec
 
-A crystal-ball skin for Video.js v10. The timeline preview is a glass orb: look into it to see where the video is
-going, let go and the orb opens into that moment.
+A crystal-ball skin for Video.js v10. Travel through the video and the picture itself becomes the crystal ball.
 
 ## Idea
 
-A seek preview is normally a flat thumbnail that flips as the pointer moves. Here it is an orb that rises from the
-playhead. Inside it the storyboard picture for that moment is bent by the lens, and as the pointer moves the picture
-flows between frames instead of flipping. On release the orb opens over the frame and gives way to the video.
+The video is a rectangle until time is travelled. Scrub or jump, and the picture curls up into a glass orb in the
+middle of the player: a crystal ball in which the video flows from one moment to the next. The timeline curls with it,
+onto the orb's lower rim. Arrive, and the orb uncurls onto the new frame.
 
 Professional and quiet everywhere else, so the orb is the only spectacle.
 
@@ -32,18 +31,40 @@ smaller and its caption is the time alone. Under 21rem the captions button goes 
 
 ## The orb
 
-- Diameter `clamp(6.5rem, 30cqi, 14rem)`; `clamp(4.5rem, 26cqi, 7rem)` on narrow players.
-- Rises from the bead (scale from 0.35, origin at the line) and follows the pointer, clamped to the player.
-- Caption under it, real text: chapter title in italic serif, then the time and the offset from now (`+1:24`, `−0:30`).
-- Drawn in WebGL2 when a storyboard is available: fisheye lens, darker toward the rim, grazing edge light, a window
-  reflection, slight dispersion at the rim, a soft shadow on the picture behind.
-- Between tiles the picture is a motion-compensated blend where the two tiles are the same shot, and a liquid dissolve
-  across a cut (the outgoing picture defocuses and pushes in, the incoming one arrives from behind, bright regions
-  first).
-- On release it opens: the radius grows past the farthest corner, the lens relaxes to flat, the picture settles onto
-  the frame, and it fades once the player shows the new frame.
-- Fallback (no WebGL2, context lost, or reduced motion): the still storyboard thumbnail inside a CSS glass circle.
-  No storyboard at all: caption only.
+**When it appears**
+
+- Dragging the timeline, dragging sideways on the picture, or anything that seeks by more than a couple of seconds
+  (keys, double-tap, a replay) wraps the picture into the orb. Jumps do it briskly: about 180ms in, 280ms out.
+- `hover="orb"` (default): resting the pointer on the timeline wraps it too, to look around before committing.
+  `hover="peek"`: hovering shows a small orb at the pointer instead and leaves the picture alone.
+- Buffering: a small orb in the centre, refracting the stalled frame, with fog turning inside it.
+- Ended: an orb in the centre holding the opening frame, with the replay control in it; the last frame dims behind.
+
+**How it is drawn** (WebGL2, one pass)
+
+- One shape, a superellipse, travels from the frame's rectangle to the sphere's circle; the picture eases from flat to
+  a wide lens that keeps most of the frame in view. The stage around it darkens, lit faintly by the orb.
+- Glass: darker toward the rim, a grazing edge light, a window reflection, slight dispersion at the rim.
+- The wrap starts from the exact frame on screen and ends on the exact new frame, so neither end jumps.
+- Between storyboard tiles the picture is a motion-compensated blend within a shot and a liquid dissolve across a cut.
+  Resting on a moment fetches its exact frame (Mux) and the picture sharpens.
+- Dragging on the picture is relative to now: a full-width drag covers a third of the video, at least 45 seconds.
+  Playback pauses while a hand is scrubbing and resumes after.
+
+**The curved bar**
+
+- The timeline bends from the straight bar onto the orb's lower rim, 140° wide, just outside the glass: chapters as
+  gaps, buffered and played lengths, the bead as the knob.
+- Current time at its start, duration at its end, the target time and offset on a plate by the knob, the chapter
+  title in italic serif beneath.
+- Pressing on the arc scrubs by angle. The library's time slider stays in the document as the real control; the arc
+  mirrors it, including the focus ring on the knob.
+
+**Fallbacks**
+
+- Reduced motion, no WebGL2 or a lost context: nothing wraps. Seeks cut, the bar stays straight, hovering shows the
+  still storyboard thumbnail in a CSS glass circle, buffering shows the spinner.
+- No storyboard: the orb still wraps, holding the frame it started from under fog until the new one arrives.
 
 ## Depth tier (opt-in)
 
@@ -75,8 +96,8 @@ serif, italic, for the chapter title under the orb. No web fonts.
 
 - Controls: the starter's quick fade.
 - Buttons: instant press feedback (scale 0.92), no other motion.
-- Orb picture: critically damped spring toward the pointer, about a third of a second, never overshoots.
-- Orb opening: 560ms; handover to the video 300ms once the frame is ready.
+- Orb picture: critically damped spring toward the target, about a third of a second, never overshoots.
+- Wrapping: 340ms while scrubbing, 180ms for a jump. Unwrapping: 400ms and 280ms, once the new frame is on screen.
 - All durations go through the skin's motion tokens. Under reduced motion the tokens collapse and the WebGL orb is
   replaced by the still thumbnail with an instant seek.
 
