@@ -164,8 +164,11 @@ version it was made with.
 ## Credits
 
 - Design and code: [Ahmed Abuzuraiq](https://abuzreq.com/).
-- Built on [Video.js v10](https://videojs.org). The demo video is NASA's *Cosmic Dawn* trailer, streamed by
-  [Mux](https://www.mux.com).
+- Built on [Video.js v10](https://videojs.org).
+- The demo film is the first 2:20 of
+  [*Eruption of Fagradalsfjall volcano, 2021-03-24, 2*](https://commons.wikimedia.org/wiki/File:Eruption_of_Fagradalsfjall_volcano,_2021-03-24,_2.webm)
+  by Mladen Stojanovic, used under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) and shortened. It is
+  hosted on [Mux](https://www.mux.com), playback ID `1Xy015xxsJduTP5ZZQFTD7m00D5hLcwslpwppWEPIuYWs`.
 - The display typeface is [Cinzel](https://github.com/NDISCOVER/Cinzel) by Natanael Gama, bundled in
   `src/video/fonts/` under the SIL Open Font License 1.1 (`src/video/fonts/OFL.txt`).
 - Everything else in the skin, including the icons, is original work.

@@ -6,9 +6,12 @@ import skinTemplate from '@/video/skin.html?raw';
 // What the preview plays: a public Mux playback ID, the moment its poster shows (in seconds), and a chapters
 // track served from `apps/preview/public` (or null for none). To play something else, change these three.
 // The title in the player's corner is the one the asset has in Mux.
-const PLAYBACK_ID = '83EzHOvVzVN01AsrD01BCpiH02Pj3S8mfzBOu101w2nHC5s';
-const POSTER_TIME = 69;
-const CHAPTERS: string | null = './cosmic-dawn-chapters.vtt';
+//
+// The film is the first 2:20 of "Eruption of Fagradalsfjall volcano, 2021-03-24, 2" by Mladen Stojanovic, from
+// Wikimedia Commons under CC BY 3.0: one unbroken drone flight, which is what the stone shows off best.
+const PLAYBACK_ID = '1Xy015xxsJduTP5ZZQFTD7m00D5hLcwslpwppWEPIuYWs';
+const POSTER_TIME = 58;
+const CHAPTERS: string | null = './fagradalsfjall-chapters.vtt';
 
 const SRC = `https://stream.mux.com/${PLAYBACK_ID}.m3u8`;
 const POSTER = `https://image.mux.com/${PLAYBACK_ID}/thumbnail.webp?time=${POSTER_TIME}`;

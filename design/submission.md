@@ -35,3 +35,6 @@ nothing wraps.
 
 - Source: https://github.com/abuzreq/scry-videojs-reskin
 - Author: https://abuzreq.com/
+- Mux playback ID of the demo film: `1Xy015xxsJduTP5ZZQFTD7m00D5hLcwslpwppWEPIuYWs`
+- Film credit: *Eruption of Fagradalsfjall volcano, 2021-03-24, 2* by Mladen Stojanovic, CC BY 3.0, from
+  Wikimedia Commons; the first 2:20, shortened.
