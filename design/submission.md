@@ -33,9 +33,11 @@ nothing wraps.
 
 ## Links
 
+- Live demo: https://scry-video-player.netlify.app/
 - Source: https://github.com/abuzreq/scry-videojs-reskin
 - Author: https://abuzreq.com/
-- Mux playback ID of the demo film: `cG6Xmjnjk00mL00gtnEd025kxhn6jLi6j6ht016BbTh8qQw`
+- Mux playback ID of the demo film: `8j9yiPCagcKckc900j023Rllts1EngAvDUZJj8viyCrMc`
 - Film credit: *Eruption of Fagradalsfjall volcano, 2021-03-24, 2* by Mladen Stojanovic, CC BY 3.0, from
   Wikimedia Commons; the first 2:20, shortened and set to music.
-- Music credit: *Transpire* by Hampus Naeselius, licensed from Epidemic Sound.
+- Music credit: "Moorland" Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0,
+  http://creativecommons.org/licenses/by/4.0/
